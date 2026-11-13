@@ -12,6 +12,8 @@ They show the sample document `tests/fixtures/sample-report.pdf`.
 | `watermark-light.png` | Watermark PDF with live preview |
 | `page-numbers-dark.png` | Page Numbers with live preview |
 | `compress-dark.png` | Compress PDF |
+| `word-to-pdf-light.png` | Word to PDF |
+| `pdf-to-markdown-dark.png` | PDF to Markdown |
 | `settings-light.png` | Settings |
 
 ## Regenerating

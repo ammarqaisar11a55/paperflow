@@ -3,20 +3,21 @@
 **Your PDFs. Your Device. Your Privacy.**
 
 PaperFlow is an offline PDF toolkit for Linux. It merges, splits, compresses, organizes,
-converts, watermarks, protects and OCRs PDF files entirely on your computer. Nothing is
-uploaded, no account is needed, and every tool works without an internet connection.
+converts, watermarks, protects and OCRs PDF files, and turns Word, PowerPoint, Excel and HTML
+files into PDFs, entirely on your computer. Nothing is uploaded, no account is needed, and every
+tool works without an internet connection.
 
 ![PaperFlow dashboard](docs/screenshots/dashboard-light.png)
 
 ## Tools
 
-| Organize | Optimize | Convert | Edit | Security | OCR |
-| --- | --- | --- | --- | --- | --- |
-| Merge PDF | Compress PDF | PDF to Images | Watermark PDF | Protect PDF | OCR PDF |
-| Split PDF | | Images to PDF | Page Numbers | Unlock PDF | |
-| Organize PDF | | Extract Images | Metadata Editor | | |
-| Rotate PDF | | PDF to Text | | | |
-| Extract Pages | | | | | |
+| Organize | Optimize | Convert to PDF | Convert from PDF | Edit | Security | OCR |
+| --- | --- | --- | --- | --- | --- | --- |
+| Merge PDF | Compress PDF | Word to PDF | PDF to Images | Watermark PDF | Protect PDF | OCR PDF |
+| Split PDF | | PowerPoint to PDF | PDF to Text | Page Numbers | Unlock PDF | |
+| Organize PDF | | Excel to PDF | PDF to Markdown | Metadata Editor | | |
+| Rotate PDF | | HTML to PDF | Extract Images | | | |
+| Extract Pages | | Images to PDF | | | | |
 
 There is also a PDF viewer with search, zoom, thumbnails and full screen. See
 [docs/FEATURES.md](docs/FEATURES.md) for what each tool does.
@@ -34,7 +35,7 @@ sudo snap install paperflow
 ```
 
 The snap runs under strict confinement and includes everything it needs: Ghostscript, Poppler,
-qpdf, and Tesseract with language data for 17 languages. It can read and write files in your
+qpdf, Tesseract with language data for 17 languages, and LibreOffice for Office and HTML files. It can read and write files in your
 home folder and on removable drives, and has no network access.
 
 To install a snap you built yourself or downloaded from a release:
@@ -46,7 +47,8 @@ sudo snap install --dangerous paperflow_0.1.0_amd64.snap
 ### Debian / Ubuntu package
 
 Releases also include a `.deb`. It depends on the distribution's `ghostscript`,
-`poppler-utils`, `qpdf` and `tesseract-ocr` packages, which `apt` installs with it:
+`poppler-utils`, `qpdf` and `tesseract-ocr` packages, which `apt` installs with it, and
+recommends LibreOffice for the Word, PowerPoint, Excel and HTML converters:
 
 ```bash
 sudo apt install ./PaperFlow_0.1.0_amd64.deb
@@ -75,8 +77,8 @@ eval "$(scripts/dev-engines.sh)"
 npm run tauri dev
 ```
 
-`scripts/dev-engines.sh` makes qpdf and Tesseract available without root if your system lacks
-them. Building, testing and packaging are described in [docs/BUILDING.md](docs/BUILDING.md), and
+`scripts/dev-engines.sh` makes qpdf, Tesseract and LibreOffice available without root if your
+system lacks them. Building, testing and packaging are described in [docs/BUILDING.md](docs/BUILDING.md), and
 the design of the application in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Documentation

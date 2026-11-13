@@ -16,7 +16,8 @@
     <ul>
       <li>Merge, split, organize, rotate and extract pages</li>
       <li>Compress PDFs with quality presets</li>
-      <li>Convert between PDF, images and text</li>
+      <li>Convert Word, PowerPoint, Excel and HTML files to PDF</li>
+      <li>Convert PDFs to images, text and Markdown</li>
       <li>Add watermarks and page numbers with a live preview</li>
       <li>Edit metadata, protect with a password, or unlock with yours</li>
       <li>Make scanned documents searchable with OCR</li>
@@ -52,6 +53,8 @@
     <keyword>compress</keyword>
     <keyword>ocr</keyword>
     <keyword>offline</keyword>
+    <keyword>word</keyword>
+    <keyword>markdown</keyword>
   </keywords>
   <content_rating type="oars-1.1" />
   <releases>

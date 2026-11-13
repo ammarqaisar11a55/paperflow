@@ -16,6 +16,10 @@ PaperFlow, so their licenses apply to the programs themselves.
 | [qpdf](https://qpdf.sourceforge.io) | Password protection and unlocking | Apache-2.0 | |
 | [Tesseract](https://github.com/tesseract-ocr/tesseract) | OCR | Apache-2.0 | |
 | [Tesseract language data](https://github.com/tesseract-ocr/tessdata) | OCR languages (17 plus orientation) | Apache-2.0 | |
+| [LibreOffice](https://www.libreoffice.org) (`soffice`, Writer, Calc and Impress without a desktop interface) | Word, PowerPoint, Excel and HTML to PDF | MPL-2.0 | Separate, unmodified program; its configuration is made relocatable when bundled. |
+| [Liberation fonts](https://github.com/liberationfonts/liberation-fonts) | Metric-compatible replacements for Arial, Times New Roman and Courier New | OFL-1.1 | |
+| [Carlito](https://github.com/googlefonts/carlito) and [Caladea](https://github.com/huertatipografica/Caladea) | Metric-compatible replacements for Calibri and Cambria | OFL-1.1 and Apache-2.0 | |
+| [DejaVu fonts](https://dejavu-fonts.github.io) | General fallback font | Bitstream Vera licence (permissive) | |
 | [URW base35 fonts](https://github.com/ArtifexSoftware/urw-base35-fonts) | Fonts Ghostscript needs | AGPL-3.0 with font exception | |
 
 ## Rust crates (linked into PaperFlow)
@@ -27,6 +31,8 @@ PaperFlow, so their licenses apply to the programs themselves.
 | [lopdf](https://crates.io/crates/lopdf) | PDF reading and writing | MIT |
 | [image](https://crates.io/crates/image) | Decoding images for Images to PDF and watermarks | MIT OR Apache-2.0 |
 | [flate2](https://crates.io/crates/flate2) | Compressing embedded images | MIT OR Apache-2.0 |
+| [quick-xml](https://crates.io/crates/quick-xml) | Reading Poppler's layout for PDF to Markdown | MIT |
+| [libc](https://crates.io/crates/libc) | Stopping an engine's whole process group on cancel | MIT OR Apache-2.0 |
 | serde, serde_json | Serialization | MIT OR Apache-2.0 |
 | chrono | Dates in metadata and activity | MIT OR Apache-2.0 |
 | uuid | Job ids | MIT OR Apache-2.0 |

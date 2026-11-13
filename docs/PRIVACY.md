@@ -13,6 +13,9 @@ PaperFlow is built so that your documents never leave your computer.
   job that needs it, never on the command line (where other programs could see it), never in a
   file, and never in a log. The recent activity list does not include tool settings.
 - It does not modify your original files.
+- It does not run macros or scripts from documents. Word, PowerPoint, Excel and HTML files are
+  converted by LibreOffice with macros disabled and linked internet content blocked, and HTML is
+  never executed.
 
 ## What PaperFlow keeps on your computer
 

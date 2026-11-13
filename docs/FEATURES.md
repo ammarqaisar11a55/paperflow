@@ -23,12 +23,29 @@ unless you allow it in Settings; even then, an input file is never overwritten.
 | --- | --- | --- |
 | **Compress PDF** | Reduces file size with Ghostscript and reports the original size, new size and percentage saved. If a file cannot get smaller, PaperFlow says so and keeps an unchanged copy rather than a larger one. | Extreme (72 dpi images), Recommended (150 dpi), Light (300 dpi); convert to grayscale. |
 
-## Convert
+## Convert to PDF
+
+Word, PowerPoint, Excel and HTML files are converted by LibreOffice, running on your computer
+with a fresh private profile for every file. Macros never run, and linked content from the
+internet is never downloaded.
 
 | Tool | What it does | Options |
 | --- | --- | --- |
+| **Word to PDF** | Converts DOCX, DOC, DOCM, DOTX, ODT and RTF documents. Fonts that aren't installed are replaced with metric-compatible ones (Carlito for Calibri, Caladea for Cambria, Liberation for Arial, Times New Roman and Courier New), so line breaks match closely. | PDF/A for archiving. |
+| **PowerPoint to PDF** | Converts PPTX, PPT, PPSX and ODP presentations, one slide per page. Animations and embedded video are not included. | PDF/A for archiving. |
+| **Excel to PDF** | Converts XLSX, XLS, XLSM, ODS and CSV spreadsheets, every sheet, using each sheet's print settings. | Each sheet on one page; PDF/A for archiving. |
+| **HTML to PDF** | Converts saved web pages and HTML documents. Scripts don't run; complex web layouts may differ from a browser's rendering. | PDF/A for archiving. |
+| **Images to PDF** | See below. | |
+
+The result takes the document's name (`Report.docx` becomes `Report.pdf`).
+
+## Convert from PDF
+
+| Tool | What it does | Options |
+| --- | --- | --- |
+| **PDF to Markdown** | Rebuilds the document's structure as Markdown: headings from larger text (`#`, `##`, `###`), paragraphs with hyphenated words rejoined, bullet and numbered lists, bold, italic and links. Running headers, footers and page numbers repeated on most pages are dropped. Tables come out as plain text in reading order; scanned pages need OCR PDF first. | Page range; detect headings; separate pages with a rule. |
 | **PDF to Images** | Renders pages to images in a new folder. | PNG or JPEG, 72–600 dpi, JPEG quality, page range. |
-| **Images to PDF** | Turns images into one PDF, one image per page. JPEG photos are embedded unchanged (no quality loss) and EXIF rotation is respected; transparency is kept. | Page size (same as image, A4, Letter, Legal), orientation, margin. Accepts PNG, JPEG, WebP, BMP, TIFF and GIF. |
+| **Images to PDF** (Convert to PDF) | Turns images into one PDF, one image per page. JPEG photos are embedded unchanged (no quality loss) and EXIF rotation is respected; transparency is kept. | Page size (same as image, A4, Letter, Legal), orientation, margin. Accepts PNG, JPEG, WebP, BMP, TIFF and GIF. |
 | **Extract Images** | Saves the pictures embedded in a PDF at their original resolution and format. | Page range. |
 | **PDF to Text** | Exports text to a `.txt` file, with pages separated by form feeds. Warns when pages have no text (likely scans). | Keep layout or plain reading order; page range. |
 
@@ -72,14 +89,15 @@ full screen (`F11`). `Ctrl`-click thumbnails to select pages and extract them.
 
 ## Batch processing
 
-Tools marked "batch" (Rotate, Compress, PDF to Images, Extract Images, PDF to Text, Watermark,
-Page Numbers, Protect, Unlock, OCR) accept several files and process each one separately. Two
+Most tools (Rotate, Compress, every conversion except Images to PDF, Watermark, Page Numbers,
+Protect, Unlock, OCR) accept several files and process each one separately. Two
 jobs run at a time; the rest wait in the queue. Queued and running jobs can be cancelled; a
 cancelled job leaves no files behind.
 
 ## Dashboard, favorites and recent activity
 
-Drop files on the dashboard and PaperFlow suggests tools that fit them. Star a tool to keep it
+Drop files on the dashboard and PaperFlow suggests tools that fit them: the right converter for
+Word, PowerPoint, Excel, HTML and image files, and common tools for PDFs. Star a tool to keep it
 under Favorites. Recent activity lists file names, the tool, the outcome, the time and where the
 result was saved, with a button to show it in the file manager.
 

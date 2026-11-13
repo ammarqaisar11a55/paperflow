@@ -13,7 +13,7 @@ sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appi
 - The processing engines, for the tools that use them:
 
 ```bash
-sudo apt install ghostscript poppler-utils qpdf tesseract-ocr tesseract-ocr-eng
+sudo apt install ghostscript poppler-utils qpdf tesseract-ocr tesseract-ocr-eng libreoffice-writer-nogui libreoffice-calc-nogui libreoffice-impress-nogui fonts-crosextra-carlito fonts-crosextra-caladea
 ```
 
 Without root, `scripts/dev-engines.sh` downloads the Ubuntu packages for any missing engine into
@@ -46,7 +46,7 @@ opens a screen directly, for example `#tool=organize&file&theme=dark`.
 | Frontend | `npm test` | Page ranges, organizer history, tool search, title bar window controls, form controls, tool validation and job submission, processing, completion and error states, navigation (Vitest, React Testing Library). |
 | Type checking | `npm run typecheck` | The whole interface, tests included. |
 | Backend | `npm run test:rust` | Path safety, output naming, option parsing, every PDF operation on generated documents (page order, rotation, text content, page counts), the job queue and cancellation, settings persistence, and the IPC contract on Tauri's mock runtime. |
-| Engines | included in `npm run test:rust` | Compression, rendering, text extraction, image extraction, encryption and wrong passwords, OCR of a rendered scan, and awkward file names, all against the real programs. Each test is skipped, with a note, when its engine is missing. |
+| Engines | included in `npm run test:rust` | Compression, rendering, text extraction, image extraction, encryption and wrong passwords, OCR of a rendered scan, Word, PowerPoint, Excel and HTML to PDF (with a remote image that must not be fetched), PDF to Markdown, and awkward file names, all against the real programs. Each test is skipped, with a note, when its engine is missing. |
 
 Lint and format the Rust code the way CI does:
 
@@ -72,8 +72,10 @@ distribution's engine packages.
 ### Snap
 
 The snap (`snap/snapcraft.yaml`) uses `core24` and the GNOME extension, runs under strict
-confinement, and bundles the engines, the URW fonts Ghostscript needs, Poppler's data and
-Tesseract language data. Its plugs are `home`, `removable-media` and `browser-support` (for
+confinement, and bundles the engines, the URW fonts Ghostscript needs, Poppler's data,
+Tesseract language data, LibreOffice (Writer, Calc and Impress without a desktop interface) and
+Office-compatible fonts. The build runs `scripts/relink-libreoffice.sh` so LibreOffice works from
+`$SNAP`. Its plugs are `home`, `removable-media` and `browser-support` (for
 WebKitGTK's web process sandbox), plus those of the GNOME extension. It has no `network` plug.
 
 Building locally needs LXD:
@@ -149,3 +151,5 @@ snapcraft upload --release=stable paperflow_X.Y.Z_amd64.snap
 | The window opens blank in development | Run `npm run dev` once so `public/pdfjs` is created, or use `npm run tauri dev`, which does it for you. |
 | Files on another drive cannot be opened in the snap | Connect the removable-media interface: `sudo snap connect paperflow:removable-media`. |
 | A protected PDF is refused by every tool | Unlock it first with Unlock PDF and its password. |
+| Office or HTML conversion says LibreOffice "is not available" | Install the packages listed under Requirements, or use the snap. |
+| A converted Word document's lines break differently | A font it uses isn't installed. Install the font, or `fonts-crosextra-carlito` and `fonts-crosextra-caladea` for Calibri and Cambria. |

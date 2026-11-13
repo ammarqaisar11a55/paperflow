@@ -35,12 +35,22 @@ every PDF operation, and a React interface that runs in the system WebKitGTK web
 | PDF to images, PDF to text, extract images, OCR rendering | Poppler (`pdftoppm`, `pdftotext`, `pdfimages`) | Accurate rendering and text extraction. |
 | Protect and unlock | qpdf | The reference implementation of PDF encryption. |
 | OCR | Tesseract | Mature, offline OCR that writes searchable PDF pages. |
+| Word, PowerPoint, Excel and HTML to PDF | LibreOffice (headless) | The only offline engine that renders Office formats faithfully. |
+| PDF to Markdown | Poppler (`pdftohtml -xml`) for the layout, Rust for the structure | Gives every text run's position and font; `pdf/ops/markdown.rs` turns that into headings, paragraphs and lists. |
 
 `services/engines.rs` finds each program in `$SNAP/usr/bin`, next to the executable,
 `PAPERFLOW_ENGINE_DIR` (development) or `PATH`. Engines run with a fixed locale, can be
 cancelled at any time (the process is killed), and report progress by their output where they
-provide it (Ghostscript prints each page). Inside the Snap, Ghostscript is pointed at its bundled
-support files with `GS_LIB`, and Tesseract at its language data with `TESSDATA_PREFIX`.
+provide it (Ghostscript prints each page). Each engine runs in its own process group, so cancelling
+also stops any helpers it started (LibreOffice launches several). Inside the Snap, Ghostscript is
+pointed at its bundled support files with `GS_LIB`, and Tesseract at its language data with
+`TESSDATA_PREFIX`.
+
+LibreOffice runs with a fresh profile in the job folder for every conversion. The profile turns off
+macros and blocks linked content from untrusted (remote) locations, so a document can neither run
+code nor reach the network. Ubuntu builds LibreOffice to live in `/usr/lib/libreoffice`;
+`scripts/relink-libreoffice.sh` makes the bundled copy relocatable (relative base folder, links
+inside the bundle), and PaperFlow puts LibreOffice's program folder first on the library path.
 
 ## The operation pipeline
 
@@ -146,7 +156,8 @@ src-tauri/src/
   commands/              Tauri commands
   services/              operations, jobs, engines, store, context
   pdf/                   document, assemble, overlay, geometry, fonts, images, ranges
-  pdf/ops/               organize, stamp, metadata, convert, compress, security, ocr
+  pdf/ops/               organize, stamp, metadata, convert, compress, security, ocr,
+                         office (Office and HTML to PDF), markdown (PDF to Markdown)
   filesystem/            paths, temp
   ipc_tests.rs           IPC contract tests on Tauri's mock runtime
 snap/ packaging/         Snap and AppStream metadata
