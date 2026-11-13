@@ -40,8 +40,14 @@ pub enum Engine {
 }
 
 impl Engine {
-    pub const ALL: [Engine; 6] =
-        [Engine::Ghostscript, Engine::Qpdf, Engine::Pdftoppm, Engine::Pdftotext, Engine::Pdfimages, Engine::Tesseract];
+    pub const ALL: [Engine; 6] = [
+        Engine::Ghostscript,
+        Engine::Qpdf,
+        Engine::Pdftoppm,
+        Engine::Pdftotext,
+        Engine::Pdfimages,
+        Engine::Tesseract,
+    ];
 
     pub fn binary(self) -> &'static str {
         match self {
@@ -150,6 +156,28 @@ pub fn tessdata_dir() -> Option<PathBuf> {
     None
 }
 
+/// Ghostscript looks for its startup files and fonts at the path it was
+/// built for (/usr/share/ghostscript/<version>). Inside the Snap they live
+/// under $SNAP, so point it there.
+fn ghostscript_lib_path() -> Option<std::ffi::OsString> {
+    let snap = PathBuf::from(std::env::var_os("SNAP")?);
+    let share = snap.join("usr/share/ghostscript");
+    let version_dir = std::fs::read_dir(&share)
+        .ok()?
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.join("Resource/Init").is_dir())
+        .max()?;
+    let dirs = [
+        version_dir.join("Resource/Init"),
+        version_dir.join("lib"),
+        version_dir.join("Resource/Font"),
+        share.join("fonts"),
+        snap.join("usr/share/fonts/type1/urw-base35"),
+    ];
+    std::env::join_paths(dirs.iter().filter(|d| d.is_dir())).ok()
+}
+
 /// Builds a command for an engine with a clean, predictable environment.
 pub fn command(engine: Engine) -> AppResult<Command> {
     let path = locate(engine).ok_or_else(|| missing(engine))?;
@@ -161,6 +189,11 @@ pub fn command(engine: Engine) -> AppResult<Command> {
         }
         if let Ok(joined) = std::env::join_paths(paths) {
             cmd.env("LD_LIBRARY_PATH", joined);
+        }
+    }
+    if engine == Engine::Ghostscript {
+        if let Some(lib) = ghostscript_lib_path() {
+            cmd.env("GS_LIB", lib);
         }
     }
     if engine == Engine::Tesseract {
@@ -176,11 +209,13 @@ pub fn command(engine: Engine) -> AppResult<Command> {
 }
 
 pub fn missing(engine: Engine) -> AppError {
-    AppError::new(ErrorKind::MissingEngine, format!("{} is not available.", engine.label())).with_hint(format!(
+    AppError::new(ErrorKind::MissingEngine, format!("{} is not available.", engine.label())).with_hint(
+        format!(
         "PaperFlow needs {} for this tool. The Snap package includes it; otherwise install the “{}” package.",
         engine.label(),
         engine.package()
-    ))
+    ),
+    )
 }
 
 /// Version string of an installed engine, for Settings › About.
