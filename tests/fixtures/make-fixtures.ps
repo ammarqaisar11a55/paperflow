@@ -1,0 +1,23 @@
+%!PS
+% Generates tests/fixtures/sample-report.pdf with Ghostscript:
+%   gs -q -sDEVICE=pdfwrite -o tests/fixtures/sample-report.pdf tests/fixtures/make-fixtures.ps
+/H { /Helvetica-Bold findfont exch scalefont setfont } def
+/R { /Helvetica findfont exch scalefont setfont } def
+/lines [
+  (PaperFlow processes every document on your own computer.)
+  (Nothing is uploaded, and no account is needed.)
+  (This fixture is used by tests and the development preview.)
+] def
+1 1 6 {
+  /n exch def
+  0.36 0.36 0.89 setrgbcolor 0 742 612 50 rectfill
+  1 setgray 24 H 48 758 moveto (Quarterly Report) show
+  0.13 0.14 0.17 setrgbcolor 20 H 48 690 moveto (Section ) show n 3 string cvs show
+  11 R
+  0 1 2 { /i exch def 48 660 i 18 mul sub moveto lines i get show } for
+  0.94 0.95 0.96 setrgbcolor 48 380 516 220 rectfill
+  0.36 0.36 0.89 setrgbcolor
+  0 1 5 { /i exch def 80 i 80 mul add 400 50 n i add 7 mod 1 add 25 mul rectfill } for
+  0.41 0.45 0.53 setrgbcolor 10 R 290 40 moveto (Page ) show n 3 string cvs show
+  showpage
+} for
