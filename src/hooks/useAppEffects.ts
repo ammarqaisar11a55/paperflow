@@ -12,7 +12,13 @@ export function useThemeEffect() {
   useEffect(() => {
     const media = window.matchMedia?.("(prefers-color-scheme: dark)");
     const apply = () => {
-      document.documentElement.dataset.theme = resolveTheme(theme, media?.matches ?? false);
+      const root = document.documentElement;
+      const next = resolveTheme(theme, media?.matches ?? false);
+      if (root.dataset.theme === next) return;
+      // Switch every colour at once instead of letting each control fade on its own.
+      root.dataset.themeSwitching = "";
+      root.dataset.theme = next;
+      requestAnimationFrame(() => requestAnimationFrame(() => delete root.dataset.themeSwitching));
     };
     apply();
     media?.addEventListener("change", apply);
