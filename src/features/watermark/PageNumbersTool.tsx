@@ -23,7 +23,7 @@ export function PageNumbersTool() {
   const [start, setStart] = useState(1);
   const [font, setFont] = useState<FontId>("helvetica");
   const [fontSize, setFontSize] = useState(11);
-  const [color, setColor] = useState("#1b2330");
+  const [color, setColor] = useState("#202124");
   const [pages, setPages] = useState("");
   const single = selection.files.length === 1 ? selection.files[0] : null;
   const count = single?.pageCount ?? null;

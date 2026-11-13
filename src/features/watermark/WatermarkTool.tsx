@@ -34,7 +34,7 @@ export function WatermarkTool() {
   const [text, setText] = useState("CONFIDENTIAL");
   const [font, setFont] = useState<FontId>("helveticaBold");
   const [fontSize, setFontSize] = useState(56);
-  const [color, setColor] = useState("#b83a2e");
+  const [color, setColor] = useState("#bf2f2b");
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [imageScale, setImageScale] = useState(40);
   const [position, setPosition] = useState<Position>("center");
