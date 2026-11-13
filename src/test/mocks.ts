@@ -2,7 +2,7 @@
 // boundary (src/services/api.ts); PDF.js rendering is replaced because jsdom
 // has no canvas.
 import { vi } from "vitest";
-import type { FileInfo } from "@/types";
+import type { FileInfo, PdfOperation } from "@/types";
 
 export function pdfInfo(name: string, pages = 3, extra: Partial<FileInfo> = {}): FileInfo {
   return {
@@ -22,7 +22,7 @@ export const apiMock = {
   readFileBytes: vi.fn(async () => new ArrayBuffer(0)),
   readMetadata: vi.fn(async () => ({ title: "", author: "", subject: "", keywords: "", creator: "", producer: "" })),
   suggestOutputDir: vi.fn(async () => "/home/test/Documents"),
-  startJob: vi.fn(async () => "job-1"),
+  startJob: vi.fn(async (_operation: PdfOperation) => "job-1"),
   cancelJob: vi.fn(async () => true),
   listJobs: vi.fn(async () => []),
   clearFinishedJobs: vi.fn(async () => undefined),
@@ -37,7 +37,7 @@ export const apiMock = {
   engineStatus: vi.fn(async () => []),
   ocrLanguages: vi.fn(async () => ["eng"]),
   openPath: vi.fn(async () => undefined),
-  revealPath: vi.fn(async () => undefined),
+  revealPath: vi.fn(async (_path: string) => undefined),
   tempUsage: vi.fn(async () => 0),
   clearTemp: vi.fn(async () => 0),
   appInfo: vi.fn(async () => ({ name: "PaperFlow", version: "0.1.0", identifier: "", repository: "", license: "MIT", sandboxed: false, tessdata: null })),
