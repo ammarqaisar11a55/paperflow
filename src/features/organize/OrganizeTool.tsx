@@ -312,7 +312,7 @@ export function OrganizeTool() {
             {file.name}
           </span>
           <Badge>{pluralize(items.length, "page")}</Badge>
-          {modified && <Badge tone="accent">Edited</Badge>}
+          {modified && <Badge tone="marker">Edited</Badge>}
         </div>
         <IconButton icon={Undo2} label="Undo" shortcut="Ctrl Z" disabled={!state.past.length} onClick={() => setState(undo)} />
         <IconButton icon={Redo2} label="Redo" shortcut="Ctrl Shift Z" disabled={!state.future.length} onClick={() => setState(redo)} />

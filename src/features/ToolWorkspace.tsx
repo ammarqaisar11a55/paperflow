@@ -192,7 +192,7 @@ export function ToolWorkspace({
       label={favorite ? "Remove from favorites" : "Add to favorites"}
       active={favorite}
       onClick={() => void toggleFavorite(tool.id)}
-      className={favorite ? "[&_svg]:fill-current" : ""}
+      className={favorite ? "!bg-marker-soft !text-marker-ink [&_svg]:fill-marker" : ""}
     />
   );
 

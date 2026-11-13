@@ -56,10 +56,10 @@ export function ToolCard({ tool, onOpen, compact }: ToolCardProps) {
         onClick={() => void toggleFavorite(tool.id)}
         className={cn(
           "absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-md transition-[opacity,color]",
-          favorite ? "text-warning opacity-100" : "text-muted opacity-0 hover:bg-surface-2 hover:text-fg group-hover:opacity-100 focus-visible:opacity-100",
+          favorite ? "text-marker-ink opacity-100" : "text-muted opacity-0 hover:bg-surface-2 hover:text-fg group-hover:opacity-100 focus-visible:opacity-100",
         )}
       >
-        <Star size={15} className={favorite ? "fill-current" : ""} />
+        <Star size={15} className={favorite ? "fill-marker" : ""} />
       </button>
     </div>
   );

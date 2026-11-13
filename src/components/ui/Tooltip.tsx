@@ -85,7 +85,7 @@ export function Tooltip({ label, shortcut, side = "bottom", children, delay = 45
           <div
             id={id}
             role="tooltip"
-            className="animate-in pointer-events-none fixed z-[1000] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-md bg-[#20242c] px-2 py-1 text-caption font-medium text-white shadow-pop dark:bg-[#3a3f4b]"
+            className="animate-in pointer-events-none fixed z-[1000] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-md bg-tooltip px-2 py-1 text-caption font-medium text-tooltip-fg shadow-pop"
             style={{
               left: Math.min(Math.max(pos.x, 60), window.innerWidth - 60),
               top: pos.y,
@@ -93,7 +93,7 @@ export function Tooltip({ label, shortcut, side = "bottom", children, delay = 45
             }}
           >
             {label}
-            {shortcut && <kbd className="rounded bg-white/15 px-1 font-sans text-[10.5px] text-white/80">{shortcut}</kbd>}
+            {shortcut && <kbd className="rounded bg-tooltip-fg/15 px-1 font-sans text-[10.5px] text-tooltip-fg/80">{shortcut}</kbd>}
           </div>,
           document.body,
         )}
