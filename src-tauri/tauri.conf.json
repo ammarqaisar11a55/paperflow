@@ -35,7 +35,7 @@
     ],
     "category": "Productivity",
     "shortDescription": "Offline PDF toolkit",
-    "longDescription": "PaperFlow merges, splits, compresses, organizes, converts, watermarks, protects and OCRs PDF files entirely on your computer. Nothing is uploaded.",
+    "longDescription": "PaperFlow merges, splits, compresses, organizes, converts, watermarks, protects and OCRs PDF files entirely on your computer, and converts Word, PowerPoint, Excel and HTML files to PDF. Nothing is uploaded.",
     "copyright": "Copyright © 2026 Muhammad Ammar Qaisar",
     "license": "MIT",
     "icon": [
@@ -52,6 +52,13 @@
           "qpdf",
           "tesseract-ocr",
           "tesseract-ocr-eng"
+        ],
+        "recommends": [
+          "libreoffice-writer-nogui | libreoffice-writer",
+          "libreoffice-calc-nogui | libreoffice-calc",
+          "libreoffice-impress-nogui | libreoffice-impress",
+          "fonts-crosextra-carlito",
+          "fonts-crosextra-caladea"
         ]
       }
     }

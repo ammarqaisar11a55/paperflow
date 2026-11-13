@@ -25,10 +25,12 @@ description: |
   - Protect PDFs with AES-256 passwords and permissions, or remove a
     password you know.
   - Make scanned documents searchable with OCR in 17 languages.
+  - Convert Word, PowerPoint, Excel and HTML files to PDF, and PDFs to
+    Markdown.
   - Read, search and navigate PDFs in the built-in viewer.
 
-  Ghostscript, Poppler, qpdf and Tesseract with its language data are
-  included, so every tool works out of the box.
+  Ghostscript, Poppler, qpdf, Tesseract with its language data and
+  LibreOffice are included, so every tool works out of the box.
 
 grade: stable
 confinement: strict
@@ -99,6 +101,15 @@ parts:
       - tesseract-ocr-spa
       - tesseract-ocr-tur
       - tesseract-ocr-urd
+      # Word, PowerPoint, Excel and HTML to PDF, without any desktop
+      # integration, plus fonts metric-compatible with Office's.
+      - libreoffice-writer-nogui
+      - libreoffice-calc-nogui
+      - libreoffice-impress-nogui
+      - fonts-liberation
+      - fonts-crosextra-carlito
+      - fonts-crosextra-caladea
+      - fonts-dejavu-core
     override-pull: |
       craftctl default
       craftctl set version="$(node -p "require('./package.json').version")"
@@ -126,6 +137,8 @@ parts:
       sed -i -e 's|^Icon=paperflow$|Icon=/usr/share/icons/hicolor/128x128/apps/paperflow.png|' \
         -e '/^TryExec=/d' \
         "${apps}/paperflow.desktop"
+      # Ubuntu's LibreOffice expects /usr/lib/libreoffice; make it run from $SNAP.
+      scripts/relink-libreoffice.sh "${CRAFT_PART_INSTALL}"
       install -Dm644 packaging/io.github.ammarqaisar11a55.paperflow.metainfo.xml \
         "${CRAFT_PART_INSTALL}/usr/share/metainfo/io.github.ammarqaisar11a55.paperflow.metainfo.xml"
     prime:

@@ -8,6 +8,7 @@ on:
     paths:
       - "snap/**"
       - "packaging/**"
+      - "scripts/relink-libreoffice.sh"
       - "package.json"
       - "package-lock.json"
       - "src-tauri/Cargo.lock"
@@ -30,9 +31,11 @@ jobs:
       - name: Install the snap and check the bundled engines
         run: |
           sudo snap install --dangerous ${{ steps.snapcraft.outputs.snap }}
-          for bin in gs qpdf pdftoppm pdftotext pdfimages tesseract; do
+          for bin in gs qpdf pdftoppm pdftotext pdfimages pdftohtml tesseract; do
             test -x "/snap/paperflow/current/usr/bin/$bin" || { echo "::error::$bin missing"; exit 1; }
           done
+          test -x /snap/paperflow/current/usr/lib/libreoffice/program/soffice
+          grep -q 'BRAND_BASE_DIR=${ORIGIN}/..' /snap/paperflow/current/usr/lib/libreoffice/program/fundamentalrc
           ls /snap/paperflow/current/usr/share/tesseract-ocr/5/tessdata/eng.traineddata
           snap connections paperflow
       - name: Keep the snap for a week
