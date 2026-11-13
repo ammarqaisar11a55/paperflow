@@ -19,6 +19,8 @@ export async function applyPreviewHash() {
   const { useSettings } = await import("@/stores/settings");
   const theme = params.get("theme");
   if (theme === "light" || theme === "dark") await useSettings.getState().update({ theme });
+  const fav = params.get("fav");
+  if (fav) await useSettings.getState().update({ favorites: fav.split(",") });
   const files = params.has("file") ? [FIXTURE] : undefined;
   const tool = params.get("tool");
   const view = params.get("view");
