@@ -19,6 +19,13 @@ document.addEventListener("contextmenu", (e) => {
   if (!target.closest("input, textarea, .selectable")) e.preventDefault();
 });
 
+// `vite dev` in a plain browser tab: answer IPC with Tauri's mock (dev only).
+if (import.meta.env.DEV && !("__TAURI_INTERNALS__" in window)) {
+  const preview = await import("./dev/browserPreview");
+  preview.installBrowserPreview();
+  setTimeout(() => void preview.applyPreviewHash(), 300);
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
