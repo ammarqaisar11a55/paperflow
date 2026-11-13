@@ -9,7 +9,8 @@ import { OutputControls } from "@/components/processing/OutputControls";
 import { ProcessingPanel } from "@/components/processing/ProcessingPanel";
 import type { FileSelection } from "@/hooks/useFileSelection";
 import { api, toAppError } from "@/services/api";
-import { pickImages, pickPdfs } from "@/services/dialogs";
+import { pickFiles } from "@/services/dialogs";
+import { KINDS } from "./fileKinds";
 import { useJobs } from "@/stores/jobs";
 import { useNavigation } from "@/stores/navigation";
 import { useSettings } from "@/stores/settings";
@@ -29,7 +30,7 @@ export interface ToolWorkspaceProps {
   /** Why the tool cannot run yet, or null. */
   blocker?: string | null;
   /** Output extension for single-file results; null when a folder is created. */
-  extension?: "pdf" | "txt" | null;
+  extension?: "pdf" | "txt" | "md" | null;
   /** Default output name for a single result. */
   defaultName?: (files: FileInfo[]) => string;
   showReduction?: boolean;
@@ -116,7 +117,7 @@ export function ToolWorkspace({
   }, [suggested, nameEdited]);
 
   const browse = useCallback(async () => {
-    const paths = tool.accepts === "pdf" ? await pickPdfs(tool.inputs !== "one") : await pickImages(true);
+    const paths = await pickFiles(tool.accepts, tool.inputs !== "one");
     await add(paths);
   }, [tool, add]);
 
@@ -124,7 +125,7 @@ export function ToolWorkspace({
   const minFiles = tool.operation === "merge" ? 2 : 1;
   const problem =
     files.length === 0
-      ? `Add ${tool.accepts === "pdf" ? "a PDF" : "an image"} to get started.`
+      ? `Add ${KINDS[tool.accepts].one} to get started.`
       : files.length < minFiles
         ? "Add at least two PDFs to merge."
         : encrypted

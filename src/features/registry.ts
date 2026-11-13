@@ -16,10 +16,16 @@ import {
   Stamp,
   Tags,
   ImageDown,
+  FileType,
+  Presentation,
+  FileSpreadsheet,
+  FileCode,
+  FileDown,
 } from "lucide-react";
 import type { PdfOperationType } from "@/types";
+import type { InputKind } from "./fileKinds";
 
-export type ToolCategory = "Organize" | "Optimize" | "Convert" | "Edit" | "Security" | "OCR";
+export type ToolCategory = "Organize" | "Optimize" | "Convert to PDF" | "Convert from PDF" | "Edit" | "Security" | "OCR";
 
 export type ToolId =
   | "merge"
@@ -37,7 +43,12 @@ export type ToolId =
   | "metadata"
   | "protect"
   | "unlock"
-  | "ocr";
+  | "ocr"
+  | "word-to-pdf"
+  | "powerpoint-to-pdf"
+  | "excel-to-pdf"
+  | "html-to-pdf"
+  | "pdf-to-markdown";
 
 export interface ToolDefinition {
   id: ToolId;
@@ -47,7 +58,7 @@ export interface ToolDefinition {
   icon: LucideIcon;
   category: ToolCategory;
   /** What the tool takes as input. */
-  accepts: "pdf" | "image";
+  accepts: InputKind;
   /** "many" combines files into one result, "batch" runs once per file, "one" takes a single file. */
   inputs: "many" | "batch" | "one";
   /** Verb for the primary button. */
@@ -134,7 +145,7 @@ export const TOOLS: ToolDefinition[] = [
     title: "PDF to Images",
     description: "Save pages as PNG or JPEG images.",
     icon: FileImage,
-    category: "Convert",
+    category: "Convert from PDF",
     accepts: "pdf",
     inputs: "batch",
     action: "Convert to images",
@@ -146,7 +157,7 @@ export const TOOLS: ToolDefinition[] = [
     title: "Images to PDF",
     description: "Turn photos and scans into a single PDF.",
     icon: Images,
-    category: "Convert",
+    category: "Convert to PDF",
     accepts: "image",
     inputs: "many",
     action: "Create PDF",
@@ -158,7 +169,7 @@ export const TOOLS: ToolDefinition[] = [
     title: "Extract Images",
     description: "Save the pictures embedded in a PDF at their original quality.",
     icon: ImageDown,
-    category: "Convert",
+    category: "Convert from PDF",
     accepts: "pdf",
     inputs: "batch",
     action: "Extract images",
@@ -170,11 +181,71 @@ export const TOOLS: ToolDefinition[] = [
     title: "PDF to Text",
     description: "Export the text of a PDF to a plain text file.",
     icon: FileText,
-    category: "Convert",
+    category: "Convert from PDF",
     accepts: "pdf",
     inputs: "batch",
     action: "Export text",
     keywords: ["txt", "extract", "copy"],
+  },
+  {
+    id: "pdf-to-markdown",
+    operation: "pdfToMarkdown",
+    title: "PDF to Markdown",
+    description: "Turn a PDF into editable Markdown with headings, lists and links.",
+    icon: FileDown,
+    category: "Convert from PDF",
+    accepts: "pdf",
+    inputs: "batch",
+    action: "Convert to Markdown",
+    keywords: ["md", "markdown", "text", "notes", "obsidian", "github", "export"],
+  },
+  {
+    id: "word-to-pdf",
+    operation: "wordToPdf",
+    title: "Word to PDF",
+    description: "Convert DOCX, DOC, ODT and RTF documents to PDF.",
+    icon: FileType,
+    category: "Convert to PDF",
+    accepts: "word",
+    inputs: "batch",
+    action: "Convert to PDF",
+    keywords: ["docx", "doc", "odt", "rtf", "document", "office", "libreoffice"],
+  },
+  {
+    id: "powerpoint-to-pdf",
+    operation: "powerPointToPdf",
+    title: "PowerPoint to PDF",
+    description: "Convert PPTX, PPT and ODP presentations to PDF, one slide per page.",
+    icon: Presentation,
+    category: "Convert to PDF",
+    accepts: "presentation",
+    inputs: "batch",
+    action: "Convert to PDF",
+    keywords: ["pptx", "ppt", "odp", "slides", "presentation", "deck", "office"],
+  },
+  {
+    id: "excel-to-pdf",
+    operation: "excelToPdf",
+    title: "Excel to PDF",
+    description: "Convert XLSX, XLS, ODS and CSV spreadsheets to PDF.",
+    icon: FileSpreadsheet,
+    category: "Convert to PDF",
+    accepts: "spreadsheet",
+    inputs: "batch",
+    action: "Convert to PDF",
+    keywords: ["xlsx", "xls", "ods", "csv", "spreadsheet", "sheet", "table", "office"],
+  },
+  {
+    id: "html-to-pdf",
+    operation: "htmlToPdf",
+    title: "HTML to PDF",
+    description: "Convert saved web pages and HTML documents to PDF.",
+    icon: FileCode,
+    category: "Convert to PDF",
+    accepts: "html",
+    inputs: "batch",
+    action: "Convert to PDF",
+    keywords: ["html", "htm", "web", "page", "website", "save"],
   },
   {
     id: "watermark",
@@ -250,7 +321,15 @@ export const TOOLS: ToolDefinition[] = [
   },
 ];
 
-export const CATEGORIES: ToolCategory[] = ["Organize", "Optimize", "Convert", "Edit", "Security", "OCR"];
+export const CATEGORIES: ToolCategory[] = [
+  "Organize",
+  "Optimize",
+  "Convert to PDF",
+  "Convert from PDF",
+  "Edit",
+  "Security",
+  "OCR",
+];
 
 export const QUICK_ACTIONS: ToolId[] = ["merge", "compress", "split", "organize"];
 

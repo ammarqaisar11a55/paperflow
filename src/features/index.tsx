@@ -1,6 +1,8 @@
 import type { ComponentType } from "react";
 import { CompressTool } from "./compress/CompressTool";
 import { ExtractImagesTool, ImagesToPdfTool, PdfToImagesTool, PdfToTextTool } from "./convert/ConvertTools";
+import { ExcelToPdfTool, HtmlToPdfTool, PowerPointToPdfTool, WordToPdfTool } from "./convert/OfficeTools";
+import { PdfToMarkdownTool } from "./convert/PdfToMarkdownTool";
 import { MergeTool } from "./merge/MergeTool";
 import { MetadataTool } from "./metadata/MetadataTool";
 import { OcrTool } from "./ocr/OcrTool";
@@ -30,4 +32,9 @@ export const TOOL_SCREENS: Record<ToolId, ComponentType> = {
   protect: ProtectTool,
   unlock: UnlockTool,
   ocr: OcrTool,
+  "word-to-pdf": WordToPdfTool,
+  "powerpoint-to-pdf": PowerPointToPdfTool,
+  "excel-to-pdf": ExcelToPdfTool,
+  "html-to-pdf": HtmlToPdfTool,
+  "pdf-to-markdown": PdfToMarkdownTool,
 };
