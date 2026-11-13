@@ -32,3 +32,6 @@ src-tauri/gen/
 
 # Copied from pdfjs-dist by scripts/copy-pdfjs-assets.mjs
 public/pdfjs/
+
+# Local Claude Code settings
+.claude/
