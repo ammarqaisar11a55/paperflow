@@ -1,0 +1,135 @@
+name: paperflow
+title: PaperFlow
+license: MIT
+base: core24
+icon: src-tauri/icons/icon.png
+website: https://github.com/ammarqaisar11a55/paperflow
+source-code: https://github.com/ammarqaisar11a55/paperflow
+issues: https://github.com/ammarqaisar11a55/paperflow/issues
+contact: https://github.com/ammarqaisar11a55/paperflow/issues
+# The version is taken from package.json by the build below.
+adopt-info: paperflow
+summary: Offline PDF toolkit. Your PDFs. Your Device. Your Privacy.
+description: |
+  PaperFlow is a complete PDF toolkit that works entirely on your computer.
+  Nothing is uploaded, no account is needed, and it works without an
+  internet connection.
+
+  - Merge, split, organize, rotate and extract pages, with real page
+    thumbnails, drag-and-drop reordering and undo.
+  - Compress PDFs with quality presets and see how much space you saved.
+  - Convert pages to PNG or JPEG, images to PDF, and PDFs to text, or
+    extract the pictures embedded in a document.
+  - Add text or image watermarks and page numbers with a live preview.
+  - Edit document metadata.
+  - Protect PDFs with AES-256 passwords and permissions, or remove a
+    password you know.
+  - Make scanned documents searchable with OCR in 17 languages.
+  - Read, search and navigate PDFs in the built-in viewer.
+
+  Ghostscript, Poppler, qpdf and Tesseract with its language data are
+  included, so every tool works out of the box.
+
+grade: stable
+confinement: strict
+compression: lzo
+
+platforms:
+  amd64:
+
+apps:
+  paperflow:
+    command: usr/bin/paperflow
+    desktop: usr/share/applications/paperflow.desktop
+    common-id: io.github.ammarqaisar11a55.paperflow
+    extensions: [gnome]
+    environment:
+      TESSDATA_PREFIX: $SNAP/usr/share/tesseract-ocr/5/tessdata
+    # No `network` plug: PaperFlow never goes online.
+    plugs:
+      # Documents the user opens and the folders results are saved to.
+      - home
+      - removable-media
+      # WebKitGTK's web process sandbox.
+      - browser-support
+
+parts:
+  paperflow:
+    plugin: nil
+    source: .
+    build-snaps:
+      # Ubuntu 24.04 ships Node 18, which is older than Vite needs.
+      - node/22/stable
+    build-packages:
+      - build-essential
+      - curl
+      - file
+      - libayatana-appindicator3-dev
+      - librsvg2-dev
+      - libssl-dev
+      - libwebkit2gtk-4.1-dev
+      - libxdo-dev
+      - pkg-config
+      - wget
+    stage-packages:
+      - libwebkit2gtk-4.1-0
+      # Processing engines. Their libraries come along as dependencies.
+      - ghostscript
+      - fonts-urw-base35
+      - poppler-utils
+      - poppler-data
+      - qpdf
+      - tesseract-ocr
+      # OCR language data.
+      - tesseract-ocr-osd
+      - tesseract-ocr-eng
+      - tesseract-ocr-ara
+      - tesseract-ocr-chi-sim
+      - tesseract-ocr-chi-tra
+      - tesseract-ocr-deu
+      - tesseract-ocr-fra
+      - tesseract-ocr-hin
+      - tesseract-ocr-ita
+      - tesseract-ocr-jpn
+      - tesseract-ocr-kor
+      - tesseract-ocr-nld
+      - tesseract-ocr-pol
+      - tesseract-ocr-por
+      - tesseract-ocr-rus
+      - tesseract-ocr-spa
+      - tesseract-ocr-tur
+      - tesseract-ocr-urd
+    override-pull: |
+      craftctl default
+      craftctl set version="$(node -p "require('./package.json').version")"
+    override-build: |
+      set -eu
+      # Rust comes from rustup's installer rather than the rustup snap, which
+      # links against a newer glibc than the GNOME SDK provides here.
+      export RUSTUP_HOME="${CRAFT_PART_BUILD}/.rustup"
+      export CARGO_HOME="${CRAFT_PART_BUILD}/.cargo"
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+        | sh -s -- -y --profile minimal --default-toolchain stable --no-modify-path
+      export PATH="${CARGO_HOME}/bin:${PATH}"
+      rustc --version
+      npm ci
+      # The engines are bundled in the snap, so the .deb's package
+      # dependencies do not apply here.
+      npm run tauri build -- --bundles deb --config '{"bundle":{"linux":{"deb":{"depends":[]}}}}'
+      dpkg -x src-tauri/target/release/bundle/deb/*.deb "${CRAFT_PART_INSTALL}"
+      # The bundler names the entry after the product; give it a stable name
+      # the `desktop:` key can point at. Inside the snap the icon is addressed
+      # by path, and TryExec goes because the command is not on the host's
+      # PATH, so desktops would hide the entry from their menus.
+      apps="${CRAFT_PART_INSTALL}/usr/share/applications"
+      mv "${apps}/PaperFlow.desktop" "${apps}/paperflow.desktop"
+      sed -i -e 's|^Icon=paperflow$|Icon=/usr/share/icons/hicolor/128x128/apps/paperflow.png|' \
+        -e '/^TryExec=/d' \
+        "${apps}/paperflow.desktop"
+      install -Dm644 packaging/io.github.ammarqaisar11a55.paperflow.metainfo.xml \
+        "${CRAFT_PART_INSTALL}/usr/share/metainfo/io.github.ammarqaisar11a55.paperflow.metainfo.xml"
+    prime:
+      # Documentation and manual pages of the staged packages are not needed.
+      - -usr/share/doc
+      - -usr/share/man
+      - -usr/share/lintian

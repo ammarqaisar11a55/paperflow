@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.ammarqaisar11a55.paperflow</id>
+  <name>PaperFlow</name>
+  <summary>Offline PDF toolkit</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="io.github.ammarqaisar11a55">
+    <name>Muhammad Ammar Qaisar</name>
+  </developer>
+  <description>
+    <p>
+      PaperFlow is a complete PDF toolkit that works entirely on your computer. Nothing is
+      uploaded, no account is needed, and it works without an internet connection.
+    </p>
+    <ul>
+      <li>Merge, split, organize, rotate and extract pages</li>
+      <li>Compress PDFs with quality presets</li>
+      <li>Convert between PDF, images and text</li>
+      <li>Add watermarks and page numbers with a live preview</li>
+      <li>Edit metadata, protect with a password, or unlock with yours</li>
+      <li>Make scanned documents searchable with OCR</li>
+      <li>Read and search PDFs in the built-in viewer</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">paperflow.desktop</launchable>
+  <url type="homepage">https://github.com/ammarqaisar11a55/paperflow</url>
+  <url type="bugtracker">https://github.com/ammarqaisar11a55/paperflow/issues</url>
+  <url type="vcs-browser">https://github.com/ammarqaisar11a55/paperflow</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Dashboard</caption>
+      <image>https://raw.githubusercontent.com/ammarqaisar11a55/paperflow/main/docs/screenshots/dashboard-light.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Page organizer</caption>
+      <image>https://raw.githubusercontent.com/ammarqaisar11a55/paperflow/main/docs/screenshots/organize-dark.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Watermark with live preview</caption>
+      <image>https://raw.githubusercontent.com/ammarqaisar11a55/paperflow/main/docs/screenshots/watermark-light.png</image>
+    </screenshot>
+  </screenshots>
+  <categories>
+    <category>Office</category>
+    <category>Utility</category>
+  </categories>
+  <keywords>
+    <keyword>pdf</keyword>
+    <keyword>merge</keyword>
+    <keyword>split</keyword>
+    <keyword>compress</keyword>
+    <keyword>ocr</keyword>
+    <keyword>offline</keyword>
+  </keywords>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="0.1.0" date="2026-11-13">
+      <description>
+        <p>First release.</p>
+      </description>
+    </release>
+  </releases>
+</component>
