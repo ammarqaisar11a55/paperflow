@@ -5,6 +5,7 @@
 // reports that processing needs the desktop app.
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import type { FileInfo, Settings } from "@/types";
+import { KINDS, type InputKind } from "@/features/fileKinds";
 
 const FIXTURE = "/home/preview/Documents/Quarterly Report.pdf";
 let settings: Settings | null = null;
@@ -21,7 +22,9 @@ export async function applyPreviewHash() {
   if (theme === "light" || theme === "dark") await useSettings.getState().update({ theme });
   const fav = params.get("fav");
   if (fav) await useSettings.getState().update({ favorites: fav.split(",") });
-  const files = params.has("file") ? [FIXTURE] : undefined;
+  // `file` alone opens the sample PDF; `file=docx` (or xlsx, pptx, html) a document of that type.
+  const ext = params.get("file");
+  const files = params.has("file") ? [ext ? FIXTURE.replace(/\.pdf$/, `.${ext}`) : FIXTURE] : undefined;
   const tool = params.get("tool");
   const view = params.get("view");
   if (tool) useNavigation.getState().openTool(tool as never, files);
@@ -42,15 +45,19 @@ export function installBrowserPreview() {
       case "list_jobs":
         return [];
       case "inspect_files":
-        return (a.paths as string[]).map<FileInfo>((path) => ({
-          path,
-          name: path.split("/").pop() ?? path,
-          size: 18_342,
-          kind: path.endsWith(".pdf") ? "pdf" : "image",
-          pageCount: 6,
-          encrypted: false,
-          error: null,
-        }));
+        return (a.paths as string[]).map<FileInfo>((path) => {
+          const ext = path.split(".").pop()?.toLowerCase() ?? "";
+          const kind = (Object.keys(KINDS) as InputKind[]).find((k) => KINDS[k].extensions.includes(ext)) ?? "unsupported";
+          return {
+            path,
+            name: path.split("/").pop() ?? path,
+            size: 18_342,
+            kind,
+            pageCount: kind === "pdf" ? 6 : null,
+            encrypted: false,
+            error: null,
+          };
+        });
       case "read_file_bytes":
         return (await fetch("/tests/fixtures/sample-report.pdf")).arrayBuffer();
       case "read_metadata":

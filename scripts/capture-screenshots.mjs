@@ -30,6 +30,8 @@ const SHOTS = [
   ["watermark-light", "theme=light&tool=watermark&file"],
   ["page-numbers-dark", "theme=dark&tool=page-numbers&file"],
   ["compress-dark", "theme=dark&fav=compress&tool=compress&file"],
+  ["word-to-pdf-light", "theme=light&tool=word-to-pdf&file=docx"],
+  ["pdf-to-markdown-dark", "theme=dark&tool=pdf-to-markdown&file"],
   ["settings-light", "theme=light&view=settings"],
 ];
 
