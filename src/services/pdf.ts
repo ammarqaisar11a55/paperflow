@@ -15,15 +15,19 @@ interface CachedDoc {
   promise: Promise<PDFDocumentProxy>;
   users: number;
   destroy: () => Promise<void>;
+  idle?: number;
 }
 
 const documents = new Map<string, CachedDoc>();
+/** Documents nobody uses are kept briefly, so moving between screens is instant. */
+const IDLE_MS = 60_000;
 
 /** Loads (or reuses) a document. Call `releasePdf` when done. */
 export function acquirePdf(path: string): Promise<PDFDocumentProxy> {
   const cached = documents.get(path);
   if (cached) {
     cached.users++;
+    window.clearTimeout(cached.idle);
     return cached.promise;
   }
   let task: pdfjs.PDFDocumentLoadingTask | null = null;
@@ -47,15 +51,29 @@ export function acquirePdf(path: string): Promise<PDFDocumentProxy> {
 export function releasePdf(path: string) {
   const cached = documents.get(path);
   if (!cached) return;
-  cached.users--;
-  if (cached.users <= 0) {
+  cached.users = Math.max(0, cached.users - 1);
+  if (cached.users === 0) {
+    window.clearTimeout(cached.idle);
+    cached.idle = window.setTimeout(() => {
+      if (cached.users === 0 && documents.get(path) === cached) {
+        documents.delete(path);
+        void cached.destroy().catch(() => undefined);
+      }
+    }, IDLE_MS);
+  }
+}
+
+/** Forgets everything about a file (e.g. after it changed on disk). */
+export function forgetPdf(path: string) {
+  const cached = documents.get(path);
+  if (cached) {
     documents.delete(path);
     void cached.destroy().catch(() => undefined);
-    for (const [key, url] of thumbnails) {
-      if (key.startsWith(`${path}#`)) {
-        void url.then((u) => URL.revokeObjectURL(u)).catch(() => undefined);
-        thumbnails.delete(key);
-      }
+  }
+  for (const [key, url] of thumbnails) {
+    if (key.startsWith(`${path}#`)) {
+      thumbnails.delete(key);
+      void url.then((u) => URL.revokeObjectURL(u)).catch(() => undefined);
     }
   }
 }
@@ -82,7 +100,18 @@ function schedule<T>(task: () => Promise<T>): Promise<T> {
   });
 }
 
+/** Rendered thumbnails, least recently used first. */
 const thumbnails = new Map<string, Promise<string>>();
+const MAX_THUMBNAILS = 600;
+
+function remember(key: string, value: Promise<string>) {
+  thumbnails.set(key, value);
+  while (thumbnails.size > MAX_THUMBNAILS) {
+    const [oldest, url] = thumbnails.entries().next().value as [string, Promise<string>];
+    thumbnails.delete(oldest);
+    void url.then((u) => URL.revokeObjectURL(u)).catch(() => undefined);
+  }
+}
 
 /**
  * Renders page `pageNumber` (1-based) to an image of the given CSS width and
@@ -91,7 +120,12 @@ const thumbnails = new Map<string, Promise<string>>();
 export function renderThumbnail(path: string, pageNumber: number, width: number): Promise<string> {
   const key = `${path}#${pageNumber}@${width}`;
   const cached = thumbnails.get(key);
-  if (cached) return cached;
+  if (cached) {
+    // Mark as recently used.
+    thumbnails.delete(key);
+    thumbnails.set(key, cached);
+    return cached;
+  }
   const promise = schedule(async () => {
     const doc = await acquirePdf(path);
     try {
@@ -111,7 +145,7 @@ export function renderThumbnail(path: string, pageNumber: number, width: number)
       releasePdf(path);
     }
   });
-  thumbnails.set(key, promise);
+  remember(key, promise);
   promise.catch(() => thumbnails.delete(key));
   return promise;
 }
