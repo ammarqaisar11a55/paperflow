@@ -303,7 +303,10 @@ export function PdfViewer({ path, fullscreen, onFullscreen, onClose, onExtract, 
     const onKey = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
       const typing = (e.target as HTMLElement).closest("input");
-      if (mod && e.key.toLowerCase() === "f") {
+      if (mod && e.key.toLowerCase() === "o") {
+        e.preventDefault();
+        onOpenAnother();
+      } else if (mod && e.key.toLowerCase() === "f") {
         e.preventDefault();
         setSearchOpen(true);
         setTimeout(() => searchRef.current?.select(), 0);
