@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+src-tauri/target/
+target/
+*.snap
+parts/
+prime/
+stage/
+.craft/
+
+# Test output
+coverage/
+tests/output/
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.swp
+
+# Logs and local env
+*.log
+.env
+.env.*
