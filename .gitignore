@@ -26,3 +26,6 @@ tests/output/
 *.log
 .env
 .env.*
+
+# Tauri generated schemas
+src-tauri/gen/
