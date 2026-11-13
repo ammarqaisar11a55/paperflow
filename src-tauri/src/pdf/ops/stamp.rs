@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use lopdf::{dictionary, Document, Object};
+use lopdf::{dictionary, Object};
 use serde::Deserialize;
 
 use crate::error::{AppError, AppResult};
@@ -331,7 +331,7 @@ pub fn page_numbers(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opt
 /// Text of each page, for tests and diagnostics.
 #[cfg(test)]
 fn texts(path: &std::path::Path) -> Vec<String> {
-    let doc = Document::load(path).unwrap();
+    let doc = lopdf::Document::load(path).unwrap();
     doc.get_pages().keys().map(|n| doc.extract_text(&[*n]).unwrap_or_default()).collect()
 }
 
@@ -390,7 +390,7 @@ mod tests {
             ..Default::default()
         };
         let s = watermark(&ctx, &[input], "w", opts).unwrap();
-        let doc = Document::load(&s.files[0].0).unwrap();
+        let doc = lopdf::Document::load(&s.files[0].0).unwrap();
         let page = doc.get_dictionary(doc.get_pages()[&1]).unwrap();
         let xobjects = page.get(b"Resources").unwrap().as_dict().unwrap().get(b"XObject").unwrap().as_dict().unwrap();
         assert!(xobjects.has(IMAGE_NAME.as_bytes()));
