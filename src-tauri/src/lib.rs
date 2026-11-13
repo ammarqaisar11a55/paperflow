@@ -10,7 +10,7 @@ pub mod services;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use tauri::Manager;
+use tauri::{Manager, Runtime};
 
 use crate::services::jobs::JobManager;
 use crate::services::store::Store;
@@ -41,26 +41,11 @@ pub fn job_temp_root() -> PathBuf {
     std::env::temp_dir().join(format!("paperflow-{user}"))
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_opener::init())
-        .setup(|app| {
-            let paths = app.path();
-            let cache = job_temp_root();
-            let config = paths.app_config_dir()?;
-            let data = paths.app_data_dir()?;
-            // Leftovers from an interrupted session: no job can be running yet.
-            let _ = filesystem::temp::clear_all(&cache);
-            app.manage(AppState {
-                jobs: JobManager::new(cache.clone(), MAX_CONCURRENT_JOBS),
-                store: Arc::new(Store::open(&config, &data)),
-                temp_root: cache,
-            });
-            Ok(())
-        })
-        .invoke_handler(tauri::generate_handler![
+/// Registers PaperFlow's plugins and commands on a builder. Shared by the
+/// application and the IPC tests, which run it on Tauri's mock runtime.
+pub fn with_commands<R: Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
+    builder.plugin(tauri_plugin_dialog::init()).plugin(tauri_plugin_opener::init()).invoke_handler(
+        tauri::generate_handler![
             commands::files::inspect_files,
             commands::files::read_file_bytes,
             commands::files::read_metadata,
@@ -81,7 +66,30 @@ pub fn run() {
             commands::system::temp_usage,
             commands::system::clear_temp,
             commands::system::app_info,
-        ])
+        ],
+    )
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    with_commands(tauri::Builder::default())
+        .setup(|app| {
+            let paths = app.path();
+            let cache = job_temp_root();
+            let config = paths.app_config_dir()?;
+            let data = paths.app_data_dir()?;
+            // Leftovers from an interrupted session: no job can be running yet.
+            let _ = filesystem::temp::clear_all(&cache);
+            app.manage(AppState {
+                jobs: JobManager::new(cache.clone(), MAX_CONCURRENT_JOBS),
+                store: Arc::new(Store::open(&config, &data)),
+                temp_root: cache,
+            });
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running PaperFlow");
 }
+
+#[cfg(test)]
+mod ipc_tests;

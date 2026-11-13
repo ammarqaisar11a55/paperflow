@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Runtime, State};
 
 use crate::error::AppResult;
 use crate::services::jobs::JobSnapshot;
@@ -15,7 +15,11 @@ pub const JOB_EVENT: &str = "job-update";
 /// Validates and queues an operation. Returns the job id; progress and the
 /// result arrive as `job-update` events.
 #[tauri::command]
-pub fn start_job(app: AppHandle, state: State<'_, AppState>, operation: PdfOperation) -> AppResult<String> {
+pub fn start_job<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, AppState>,
+    operation: PdfOperation,
+) -> AppResult<String> {
     let inputs = operations::validate(&operation)?;
     let emitter = app.clone();
     let store = state.store.clone();

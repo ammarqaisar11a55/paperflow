@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Runtime};
 
 use crate::error::{AppError, AppResult};
 use crate::filesystem::paths::{display_name, validate_image_input, validate_pdf_input, IMAGE_EXTENSIONS};
@@ -27,7 +27,9 @@ pub struct FileInfo {
 }
 
 fn is_image_path(path: &Path) -> bool {
-    path.extension().map(|e| IMAGE_EXTENSIONS.contains(&e.to_string_lossy().to_lowercase().as_str())).unwrap_or(false)
+    path.extension()
+        .map(|e| IMAGE_EXTENSIONS.contains(&e.to_string_lossy().to_lowercase().as_str()))
+        .unwrap_or(false)
 }
 
 pub fn inspect(path: &Path) -> FileInfo {
@@ -57,7 +59,9 @@ pub fn inspect(path: &Path) -> FileInfo {
                     info.encrypted = meta.encrypted;
                     info.page_count = Some(meta.page_count);
                 }
-                Err(lopdf::Error::InvalidPassword) | Err(lopdf::Error::Decryption(_)) => info.encrypted = true,
+                Err(lopdf::Error::InvalidPassword) | Err(lopdf::Error::Decryption(_)) => {
+                    info.encrypted = true
+                }
                 Err(e) => info.error = Some(AppError::from(e).message),
             }
         }
@@ -88,7 +92,9 @@ pub async fn read_file_bytes(path: String) -> AppResult<tauri::ipc::Response> {
     if fs::metadata(&p)?.len() > MAX_READ_BYTES {
         return Err(AppError::invalid("This file is too large to preview."));
     }
-    let bytes = tauri::async_runtime::spawn_blocking(move || fs::read(p)).await.map_err(|e| AppError::processing(e.to_string()))??;
+    let bytes = tauri::async_runtime::spawn_blocking(move || fs::read(p))
+        .await
+        .map_err(|e| AppError::processing(e.to_string()))??;
     Ok(tauri::ipc::Response::new(bytes))
 }
 
@@ -101,7 +107,7 @@ pub async fn read_metadata(path: String) -> AppResult<Metadata> {
 
 /// The user's real Documents folder, also inside the Snap sandbox (where
 /// `$HOME` points at the snap's private folder).
-pub fn documents_dir(app: &AppHandle) -> PathBuf {
+pub fn documents_dir<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
     if let Some(real) = std::env::var_os("SNAP_REAL_HOME") {
         let real = PathBuf::from(real);
         let docs = real.join("Documents");
@@ -133,7 +139,7 @@ fn is_writable_dir(dir: &Path) -> bool {
 /// Where results go by default: next to the input when that folder is
 /// writable, otherwise Documents/PaperFlow.
 #[tauri::command]
-pub fn suggest_output_dir(app: AppHandle, input: Option<String>) -> AppResult<String> {
+pub fn suggest_output_dir<R: Runtime>(app: AppHandle<R>, input: Option<String>) -> AppResult<String> {
     if let Some(parent) = input.as_deref().map(Path::new).and_then(Path::parent) {
         if is_writable_dir(parent) {
             return Ok(parent.display().to_string());
