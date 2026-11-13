@@ -138,7 +138,7 @@ parts:
         -e '/^TryExec=/d' \
         "${apps}/paperflow.desktop"
       # Ubuntu's LibreOffice expects /usr/lib/libreoffice; make it run from $SNAP.
-      scripts/relink-libreoffice.sh "${CRAFT_PART_INSTALL}"
+      bash scripts/relink-libreoffice.sh "${CRAFT_PART_INSTALL}"
       install -Dm644 packaging/io.github.ammarqaisar11a55.paperflow.metainfo.xml \
         "${CRAFT_PART_INSTALL}/usr/share/metainfo/io.github.ammarqaisar11a55.paperflow.metainfo.xml"
     prime:

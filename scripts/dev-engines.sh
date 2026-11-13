@@ -47,7 +47,7 @@ if [ ${#need[@]} -gt 0 ]; then
     done
     for deb in *.deb; do dpkg -x "$deb" "$PREFIX"; done
   )
-  "$(dirname "$0")/relink-libreoffice.sh" "$PREFIX" >&2
+  bash "$(dirname "$0")/relink-libreoffice.sh" "$PREFIX" >&2
 fi
 
 echo "export PAPERFLOW_ENGINE_DIR=\"$PREFIX/usr/bin\""
