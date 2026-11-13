@@ -38,9 +38,9 @@ impl TempDir {
         self.path.join(name)
     }
 
-    /// Creates and returns a subfolder.
+    /// Creates and returns a new, empty subfolder whose name starts with `name`.
     pub fn subdir(&self, name: &str) -> AppResult<PathBuf> {
-        let p = self.path.join(name);
+        let p = crate::filesystem::paths::unique_path(&self.path, name);
         fs::create_dir_all(&p)?;
         Ok(p)
     }
