@@ -225,3 +225,125 @@ fn engines_handle_awkward_paths() {
     assert!(fs::read_to_string(&s.files[0].0).unwrap().contains("Fixture Page 2"));
     assert!(input.exists(), "the original is untouched");
 }
+
+/// A PDF with a title, a heading, a two-line paragraph and a bulleted list,
+/// set in different sizes of Helvetica.
+fn structured_pdf(dir: &Path) -> PathBuf {
+    use crate::pdf::fonts::{encode_win_ansi, hex_string, StandardFont};
+    use lopdf::{dictionary, Object, Stream};
+    let mut doc = Document::with_version("1.5");
+    let pages_id = doc.new_object_id();
+    let regular = doc.add_object(StandardFont::Helvetica.dictionary());
+    let bold = doc.add_object(StandardFont::HelveticaBold.dictionary());
+    let lines: [(&str, f64, f64, &str); 7] = [
+        ("F2", 26.0, 740.0, "Annual Report"),
+        ("F2", 17.0, 690.0, "Overview"),
+        ("F1", 11.0, 660.0, "PaperFlow keeps every document on your"),
+        ("F1", 11.0, 646.0, "computer and works without a network."),
+        ("F1", 11.0, 610.0, "\u{2022} Merge and split"),
+        ("F1", 11.0, 596.0, "\u{2022} Compress and protect"),
+        ("F1", 11.0, 560.0, "Thank you for reading."),
+    ];
+    let mut content = String::new();
+    for (font, size, y, text) in lines {
+        let (bytes, _) = encode_win_ansi(text, StandardFont::Helvetica);
+        content.push_str(&format!("BT /{font} {size} Tf 72 {y} Td {} Tj ET\n", hex_string(&bytes)));
+    }
+    let content_id = doc.add_object(Stream::new(dictionary! {}, content.into_bytes()));
+    let page = doc.add_object(dictionary! {
+        "Type" => "Page", "Parent" => pages_id, "Contents" => content_id,
+        "MediaBox" => vec![0.into(), 0.into(), 612.into(), 792.into()],
+        "Resources" => dictionary! { "Font" => dictionary! { "F1" => regular, "F2" => bold } },
+    });
+    doc.objects.insert(
+        pages_id,
+        Object::Dictionary(dictionary! { "Type" => "Pages", "Kids" => vec![page.into()], "Count" => 1 }),
+    );
+    let catalog = doc.add_object(dictionary! { "Type" => "Catalog", "Pages" => pages_id });
+    doc.trailer.set("Root", catalog);
+    let path = dir.join("structured.pdf");
+    doc.save(&path).unwrap();
+    path
+}
+
+#[test]
+fn converts_pdf_to_markdown() {
+    use crate::pdf::ops::markdown::{pdf_to_markdown, MarkdownOptions};
+    if !have(&[Engine::Pdftohtml]) {
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let input = structured_pdf(dir.path());
+    let ctx = JobContext::for_tests(dir.path());
+    let s = pdf_to_markdown(&ctx, &[input], "structured", MarkdownOptions::default()).unwrap();
+    assert_eq!(s.files[0].1, "structured.md");
+    let md = fs::read_to_string(&s.files[0].0).unwrap();
+    assert!(md.starts_with("# **Annual Report**") || md.starts_with("# Annual Report"), "{md}");
+    assert!(md.contains("\n## Overview\n"), "{md}");
+    assert!(
+        md.contains("PaperFlow keeps every document on your computer and works without a network."),
+        "{md}"
+    );
+    assert!(md.contains("- Merge and split\n- Compress and protect"), "{md}");
+    assert!(md.trim_end().ends_with("Thank you for reading."), "{md}");
+}
+
+/// Text of a PDF, via pdftotext.
+fn pdf_text(path: &Path) -> String {
+    let ctx = JobContext::for_tests(path.parent().unwrap());
+    let s = pdf_to_text(&ctx, &[path.to_path_buf()], "t", PdfToTextOptions::default()).unwrap();
+    fs::read_to_string(&s.files[0].0).unwrap()
+}
+
+fn convert_office(
+    name: &str,
+    contents: &str,
+    kind: crate::pdf::ops::office::OfficeKind,
+) -> (PathBuf, tempfile::TempDir) {
+    use crate::pdf::ops::office::{office_to_pdf, OfficeOptions};
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join(name);
+    fs::write(&input, contents).unwrap();
+    let ctx = JobContext::for_tests(dir.path());
+    let s = office_to_pdf(&ctx, &[input], "out", kind, OfficeOptions::default()).unwrap();
+    assert_eq!(s.files[0].1, "out.pdf");
+    let out = dir.path().join("converted.pdf");
+    fs::copy(&s.files[0].0, &out).unwrap();
+    (out, dir)
+}
+
+#[test]
+fn converts_office_documents_and_html() {
+    use crate::pdf::ops::office::OfficeKind;
+    if !have(&[Engine::LibreOffice, Engine::Pdftotext]) {
+        return;
+    }
+    let (pdf, _d1) = convert_office(
+        "letter.rtf",
+        r"{\rtf1\ansi{\fonttbl{\f0 Helvetica;}}\f0\fs24 Dear reader,\par This letter came from Word.\par}",
+        OfficeKind::Word,
+    );
+    assert!(pdf_text(&pdf).contains("This letter came from Word."));
+
+    let (pdf, _d2) = convert_office("budget.csv", "Item,Cost\nPaper,12\nInk,30\n", OfficeKind::Spreadsheet);
+    let text = pdf_text(&pdf);
+    assert!(text.contains("Paper") && text.contains("30"), "{text}");
+
+    let slides = r#"<?xml version="1.0" encoding="UTF-8"?>
+<office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.presentation">
+<office:body><office:presentation>
+<draw:page draw:name="One"><draw:frame svg:x="2cm" svg:y="2cm" svg:width="20cm" svg:height="3cm"><draw:text-box><text:p>First slide title</text:p></draw:text-box></draw:frame></draw:page>
+<draw:page draw:name="Two"><draw:frame svg:x="2cm" svg:y="2cm" svg:width="20cm" svg:height="3cm"><draw:text-box><text:p>Second slide title</text:p></draw:text-box></draw:frame></draw:page>
+</office:presentation></office:body></office:document>"#;
+    let (pdf, _d3) = convert_office("deck.fodp", slides, OfficeKind::Presentation);
+    assert_eq!(Document::load(&pdf).unwrap().get_pages().len(), 2, "one page per slide");
+    assert!(pdf_text(&pdf).contains("Second slide title"));
+
+    // A remote image must not be fetched; the conversion still succeeds offline.
+    let html = r#"<!doctype html><html><head><title>Notes</title></head><body>
+<h1>Meeting notes</h1><p>Agreed to ship <b>PaperFlow</b> on Friday.</p>
+<img src="https://example.invalid/tracker.png" alt=""></body></html>"#;
+    let (pdf, _d4) = convert_office("notes.html", html, OfficeKind::Html);
+    let text = pdf_text(&pdf);
+    assert!(text.contains("Meeting notes") && text.contains("ship PaperFlow on Friday"), "{text}");
+}
