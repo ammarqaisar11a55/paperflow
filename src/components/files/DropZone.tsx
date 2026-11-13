@@ -41,7 +41,7 @@ export function DropZone({ accepts, multiple = true, onFiles, onBrowse, dropLabe
     >
       <span
         className={cn(
-          "flex items-center justify-center rounded-lg bg-accent-soft text-accent transition-transform group-hover:scale-[1.03]",
+          "flex items-center justify-center rounded-lg bg-accent-soft text-accent-text transition-transform group-hover:scale-[1.03]",
           compact ? "h-9 w-9" : "mb-1 h-11 w-11",
         )}
       >
@@ -52,7 +52,7 @@ export function DropZone({ accepts, multiple = true, onFiles, onBrowse, dropLabe
         <span className="text-secondary text-muted">
           {compact ? `Drop here or click to browse · ${types}` : (
             <>
-              or <span className="font-medium text-accent group-hover:underline">choose files</span> · {types}
+              or <span className="font-medium text-accent-text group-hover:underline">choose files</span> · {types}
             </>
           )}
         </span>

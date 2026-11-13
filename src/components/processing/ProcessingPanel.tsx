@@ -85,7 +85,7 @@ function JobResultRow({ job, showReduction }: { job: JobSnapshot; showReduction?
           ) : job.status === "cancelled" ? (
             <CircleSlash size={18} className="text-muted" />
           ) : (
-            <LoaderCircle size={18} className="animate-spin text-accent" />
+            <LoaderCircle size={18} className="animate-spin text-accent-text" />
           )}
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -188,7 +188,7 @@ export function ProcessingPanel({ jobIds, startErrors, onAnother, onBack, onRetr
           <div
             className={cn(
               "flex h-9 w-9 items-center justify-center rounded-lg",
-              !finished ? "bg-accent-soft text-accent" : failed && !completed ? "bg-danger-soft text-danger" : "bg-success-soft text-success",
+              !finished ? "bg-accent-soft text-accent-text" : failed && !completed ? "bg-danger-soft text-danger" : "bg-success-soft text-success",
             )}
           >
             {!finished ? <LoaderCircle size={18} className="animate-spin" /> : failed && !completed ? <CircleAlert size={18} /> : <CircleCheck size={18} />}

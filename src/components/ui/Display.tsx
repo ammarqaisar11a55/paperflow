@@ -51,7 +51,7 @@ export function ProgressBar({ value, label, tone = "accent", className }: Progre
 type Tone = "neutral" | "accent" | "marker" | "success" | "warning" | "danger";
 const tones: Record<Tone, string> = {
   neutral: "bg-surface-2 text-muted",
-  accent: "bg-accent-soft text-accent",
+  accent: "bg-accent-soft text-accent-text",
   marker: "bg-marker-soft text-marker-ink",
   success: "bg-success-soft text-success",
   warning: "bg-warning-soft text-warning",

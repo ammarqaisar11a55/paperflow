@@ -15,7 +15,7 @@ function DropOverlay() {
   return (
     <div className="pointer-events-none fixed inset-0 z-[800] flex items-center justify-center bg-accent/8 p-6">
       <div className="animate-in flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-accent bg-surface px-10 py-8 shadow-pop">
-        <FileUp size={28} className="text-accent" />
+        <FileUp size={28} className="text-accent-text" />
         <p className="text-card font-semibold">{label}</p>
       </div>
     </div>

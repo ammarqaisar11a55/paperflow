@@ -89,12 +89,12 @@ function PageCard({ item, index, path, width, selected, dragging, sortProps, onS
         />
       </div>
       <div className="flex items-center gap-1.5">
-        <span className={cn("tabular text-caption font-medium", selected ? "text-accent" : "text-fg/80")}>{index + 1}</span>
+        <span className={cn("tabular text-caption font-medium", selected ? "text-accent-text" : "text-fg/80")}>{index + 1}</span>
         {item.page !== index + 1 && <span className="tabular text-caption text-muted">· p.{item.page}</span>}
       </div>
 
       {selected && (
-        <span className="absolute left-1.5 top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-accent text-white shadow-card">
+        <span className="absolute left-1.5 top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-accent text-accent-contrast shadow-card">
           <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M2.5 6.5l2.2 2L9.5 3.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

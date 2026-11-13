@@ -51,7 +51,7 @@ export function Dashboard() {
         <div className="animate-in rounded-xl border border-accent/40 bg-accent-soft/40 p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface text-accent shadow-card">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface text-accent-text shadow-card">
                 {images ? <Images size={19} /> : <FileText size={19} />}
               </span>
               <div>
@@ -92,7 +92,7 @@ export function Dashboard() {
       <section className="mt-9">
         <SectionTitle
           action={
-            <button type="button" onClick={() => navigate({ view: "tools" })} className="flex items-center gap-1 text-secondary font-medium text-accent hover:underline">
+            <button type="button" onClick={() => navigate({ view: "tools" })} className="flex items-center gap-1 text-secondary font-medium text-accent-text hover:underline">
               Browse by category <ArrowRight size={13} />
             </button>
           }
@@ -110,7 +110,7 @@ export function Dashboard() {
         <SectionTitle
           action={
             activity.length > 5 && (
-              <button type="button" onClick={() => navigate({ view: "recent" })} className="flex items-center gap-1 text-secondary font-medium text-accent hover:underline">
+              <button type="button" onClick={() => navigate({ view: "recent" })} className="flex items-center gap-1 text-secondary font-medium text-accent-text hover:underline">
                 View all <ArrowRight size={13} />
               </button>
             )

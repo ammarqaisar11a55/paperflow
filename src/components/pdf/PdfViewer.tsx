@@ -472,7 +472,7 @@ export function PdfViewer({ path, fullscreen, onFullscreen, onClose, onExtract, 
                         )}
                       >
                         <PdfThumbnail path={path} page={p} width={120} className={cn("w-[120px] shadow-card", current === p && "ring-2 ring-accent")} />
-                        <span className={cn("tabular text-caption", current === p ? "font-semibold text-accent" : "text-muted")}>{p}</span>
+                        <span className={cn("tabular text-caption", current === p ? "font-semibold text-accent-text" : "text-muted")}>{p}</span>
                       </button>
                     </li>
                   );

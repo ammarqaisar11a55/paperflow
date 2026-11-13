@@ -24,7 +24,7 @@ export function Sidebar() {
     <nav
       aria-label="Main"
       className={cn(
-        "flex shrink-0 flex-col border-r border-line bg-surface transition-[width] duration-150",
+        "flex shrink-0 flex-col border-r border-line bg-chrome transition-[width] duration-150",
         collapsed ? "w-[72px]" : "w-[240px]",
       )}
     >
@@ -40,7 +40,7 @@ export function Sidebar() {
               className={cn(
                 "flex h-9 w-full items-center gap-3 rounded-md px-3 text-body transition-colors",
                 collapsed && "justify-center px-0",
-                active ? "bg-accent-soft font-medium text-accent" : "text-fg/85 hover:bg-surface-2 hover:text-fg",
+                active ? "bg-accent-soft font-medium text-accent-text" : "text-fg/85 hover:bg-surface-2 hover:text-fg",
               )}
             >
               <Icon size={17} strokeWidth={active ? 2 : 1.8} className="shrink-0" />

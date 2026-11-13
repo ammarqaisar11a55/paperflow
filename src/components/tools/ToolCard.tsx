@@ -22,7 +22,7 @@ export function ToolCard({ tool, onOpen, compact }: ToolCardProps) {
         onClick={onOpen}
         className="group flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3.5 text-left shadow-card transition-[border-color,box-shadow] duration-150 hover:border-accent/50 hover:shadow-raised"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-text">
           <Icon size={18} strokeWidth={1.8} />
         </span>
         <span className="text-card font-semibold">{tool.title}</span>
@@ -38,14 +38,14 @@ export function ToolCard({ tool, onOpen, compact }: ToolCardProps) {
         onClick={onOpen}
         className="flex h-full w-full flex-col items-start gap-3 rounded-xl border border-line bg-surface p-5 text-left shadow-card transition-[border-color,box-shadow,transform] duration-150 hover:border-accent/50 hover:shadow-raised"
       >
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-accent">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft text-accent-text">
           <Icon size={19} strokeWidth={1.8} />
         </span>
         <span className="flex flex-col gap-1">
           <span className="text-card font-semibold">{tool.title}</span>
           <span className="text-secondary text-muted">{tool.description}</span>
         </span>
-        <span className="mt-auto flex items-center gap-1 pt-1 text-secondary font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <span className="mt-auto flex items-center gap-1 pt-1 text-secondary font-medium text-accent-text opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
           Open tool <ArrowRight size={14} />
         </span>
       </button>

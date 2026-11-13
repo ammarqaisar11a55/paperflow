@@ -19,7 +19,7 @@ function JobRow({ job }: { job: JobSnapshot }) {
         ) : job.status === "cancelled" ? (
           <CircleSlash size={15} className="text-muted" />
         ) : (
-          <LoaderCircle size={15} className="animate-spin text-accent" />
+          <LoaderCircle size={15} className="animate-spin text-accent-text" />
         )}
         <span className="text-secondary font-medium">{job.title}</span>
         <span className="truncate text-caption text-muted">{job.inputNames.join(", ")}</span>
@@ -80,7 +80,7 @@ export function StatusBar() {
   }, [open]);
 
   return (
-    <footer className="relative z-10 flex h-7 shrink-0 items-center gap-3 border-t border-line bg-surface px-3 text-caption text-muted">
+    <footer className="relative z-10 flex h-7 shrink-0 items-center gap-3 border-t border-line bg-chrome px-3 text-caption text-muted">
       <span className="flex items-center gap-1.5">
         <ShieldCheck size={13} className="text-success" />
         Offline · all processing happens on this device
@@ -96,7 +96,7 @@ export function StatusBar() {
         >
           {active.length > 0 ? (
             <>
-              <LoaderCircle size={12} className="animate-spin text-accent" />
+              <LoaderCircle size={12} className="animate-spin text-accent-text" />
               <span>
                 {active.length === 1 ? active[0].title : `${active.length} jobs`} · {Math.round((overall ?? 0) * 100)}%
               </span>

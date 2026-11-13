@@ -57,7 +57,7 @@ export function TitleBar({ maximized, focused, onMinimize, onToggleMaximize, onC
     <header
       data-tauri-drag-region
       className={cn(
-        "relative z-20 flex h-11 shrink-0 items-center gap-3 border-b border-line bg-surface pl-3 pr-2.5 transition-opacity",
+        "relative z-20 flex h-11 shrink-0 items-center gap-3 border-b border-line bg-chrome pl-3 pr-2.5 transition-opacity",
         !focused && "[&>*]:opacity-75",
       )}
     >

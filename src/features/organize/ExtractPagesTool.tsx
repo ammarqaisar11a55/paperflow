@@ -51,7 +51,7 @@ export function ExtractPagesTool() {
                     )}
                   >
                     <PdfThumbnail path={file.path} page={p} width={88} className="w-[84px] shadow-card" />
-                    <span className={cn("tabular text-caption", on ? "font-semibold text-accent" : "text-muted")}>{p}</span>
+                    <span className={cn("tabular text-caption", on ? "font-semibold text-accent-text" : "text-muted")}>{p}</span>
                   </button>
                 );
               })}

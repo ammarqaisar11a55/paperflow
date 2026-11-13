@@ -180,7 +180,7 @@ export function OptionCards<T extends string>({ value, onChange, label, options 
               <span className="flex items-center gap-2 text-body font-medium">
                 {Icon && <Icon size={14} />}
                 {o.title}
-                {o.badge && <span className="rounded bg-accent-soft px-1.5 text-caption font-semibold text-accent">{o.badge}</span>}
+                {o.badge && <span className="rounded bg-accent-soft px-1.5 text-caption font-semibold text-accent-text">{o.badge}</span>}
               </span>
               <span className="text-caption text-muted">{o.description}</span>
             </span>

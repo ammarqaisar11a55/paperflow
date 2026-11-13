@@ -238,7 +238,7 @@ export function ToolWorkspace({
 
         <Card className="sticky top-0 flex flex-col">
           <div className="flex items-center gap-2.5 border-b border-line px-5 py-3.5">
-            <Icon size={17} className="text-accent" />
+            <Icon size={17} className="text-accent-text" />
             <h2 className="text-card font-semibold">Settings</h2>
           </div>
           <div className="flex flex-col gap-5 px-5 py-4">

@@ -81,7 +81,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
         aria-pressed={active}
         className={cn(
           "inline-flex shrink-0 items-center justify-center rounded-md transition-colors duration-100 disabled:cursor-not-allowed disabled:opacity-40",
-          active ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-2 hover:text-fg",
+          active ? "bg-accent-soft text-accent-text" : "text-muted hover:bg-surface-2 hover:text-fg",
           dim,
           className,
         )}
