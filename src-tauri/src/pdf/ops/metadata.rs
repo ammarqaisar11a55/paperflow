@@ -22,7 +22,10 @@ pub struct Metadata {
     pub producer: String,
 }
 
-const FIELDS: [(&[u8], fn(&Metadata) -> &str); 6] = [
+/// Reads one field of the metadata.
+type Field = fn(&Metadata) -> &str;
+
+const FIELDS: [(&[u8], Field); 6] = [
     (b"Title", |m| &m.title),
     (b"Author", |m| &m.author),
     (b"Subject", |m| &m.subject),

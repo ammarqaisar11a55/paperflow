@@ -127,7 +127,9 @@ pub fn validate(op: &PdfOperation) -> AppResult<Vec<PathBuf>> {
     for f in &op.input_files {
         let p = PathBuf::from(f);
         if !p.is_absolute() {
-            return Err(AppError::invalid("Files must be chosen with the file picker or dropped onto the window."));
+            return Err(AppError::invalid(
+                "Files must be chosen with the file picker or dropped onto the window.",
+            ));
         }
         if op.op_type.takes_images() {
             validate_image_input(&p)?;
@@ -226,7 +228,9 @@ mod tests {
 
     #[test]
     fn parses_requests() {
-        let o = op(json!({"type": "pdfToImages", "inputFiles": ["/a.pdf"], "outputDir": "/tmp", "options": {"dpi": 72}}));
+        let o = op(
+            json!({"type": "pdfToImages", "inputFiles": ["/a.pdf"], "outputDir": "/tmp", "options": {"dpi": 72}}),
+        );
         assert_eq!(o.op_type, OperationType::PdfToImages);
         assert_eq!(o.overwrite, OverwritePolicy::Rename);
     }
@@ -241,7 +245,9 @@ mod tests {
         assert_eq!(validate(&ok).unwrap().len(), 1);
         assert!(validate(&op(json!({"type": "compress", "inputFiles": [], "outputDir": d}))).is_err());
         assert!(validate(&op(json!({"type": "compress", "inputFiles": ["a.pdf"], "outputDir": d}))).is_err());
-        assert!(validate(&op(json!({"type": "compress", "inputFiles": [pdf], "outputDir": "relative"}))).is_err());
+        assert!(
+            validate(&op(json!({"type": "compress", "inputFiles": [pdf], "outputDir": "relative"}))).is_err()
+        );
         assert!(validate(&op(json!({"type": "imagesToPdf", "inputFiles": [pdf], "outputDir": d}))).is_err());
     }
 
@@ -249,7 +255,8 @@ mod tests {
     fn derives_output_names() {
         let o = op(json!({"type": "compress", "inputFiles": ["/x/Report.pdf"], "outputDir": "/tmp"}));
         assert_eq!(output_name(&o, &[PathBuf::from("/x/Report.pdf")]), "Report - compressed");
-        let o = op(json!({"type": "compress", "inputFiles": [], "outputDir": "/tmp", "outputName": "../evil"}));
+        let o =
+            op(json!({"type": "compress", "inputFiles": [], "outputDir": "/tmp", "outputName": "../evil"}));
         assert_eq!(output_name(&o, &[]), "-evil");
     }
 
@@ -272,7 +279,8 @@ mod tests {
         assert_eq!(fs::read(&pdf).unwrap(), original, "the original is preserved even with overwrite");
         assert_eq!(result.page_count, Some(2));
 
-        let o = op(json!({"type": "split", "inputFiles": [pdf], "outputDir": d, "options": {"mode": "every"}}));
+        let o =
+            op(json!({"type": "split", "inputFiles": [pdf], "outputDir": d, "options": {"mode": "every"}}));
         let staged = execute(&ctx, &o, &inputs).unwrap();
         let result = finalize(staged, &o, &inputs).unwrap();
         assert_eq!(result.output_files.len(), 2);
@@ -284,7 +292,9 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let pdf = dir.path().join("a.pdf");
         sample_doc(1, "A").save(&pdf).unwrap();
-        let o = op(json!({"type": "rotate", "inputFiles": [pdf], "outputDir": "/tmp", "options": {"angle": "sideways"}}));
+        let o = op(
+            json!({"type": "rotate", "inputFiles": [pdf], "outputDir": "/tmp", "options": {"angle": "sideways"}}),
+        );
         let ctx = JobContext::for_tests(dir.path());
         let err = execute(&ctx, &o, &[pdf]).unwrap_err();
         assert!(err.message.contains("settings"));

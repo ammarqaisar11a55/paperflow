@@ -70,7 +70,9 @@ pub fn usage(root: &Path) -> u64 {
 }
 
 fn dir_size(path: &Path) -> u64 {
-    let Ok(entries) = fs::read_dir(path) else { return 0 };
+    let Ok(entries) = fs::read_dir(path) else {
+        return 0;
+    };
     entries
         .flatten()
         .map(|e| match e.file_type() {

@@ -8,7 +8,9 @@ use lopdf::{dictionary, Document, Object};
 use serde::Deserialize;
 
 use crate::error::{AppError, AppResult};
-use crate::filesystem::paths::{display_name, file_name_with_extension, sanitize_file_name, stem, validate_image_input};
+use crate::filesystem::paths::{
+    display_name, file_name_with_extension, sanitize_file_name, stem, validate_image_input,
+};
 use crate::pdf::document::{self, verify_output};
 use crate::pdf::images::embed_image;
 use crate::pdf::ops::{require_one, Staged};
@@ -87,7 +89,12 @@ fn margin_points(m: Margin) -> f64 {
     }
 }
 
-pub fn images_to_pdf(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: ImagesToPdfOptions) -> AppResult<Staged> {
+pub fn images_to_pdf(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: ImagesToPdfOptions,
+) -> AppResult<Staged> {
     if inputs.is_empty() {
         return Err(AppError::invalid("Add at least one image."));
     }
@@ -96,7 +103,11 @@ pub fn images_to_pdf(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, op
     let mut kids = Vec::with_capacity(inputs.len());
     for (i, path) in inputs.iter().enumerate() {
         ctx.check()?;
-        ctx.progress_file(i as f64 / (inputs.len() + 1) as f64, format!("Adding image {} of {}", i + 1, inputs.len()), display_name(path));
+        ctx.progress_file(
+            i as f64 / (inputs.len() + 1) as f64,
+            format!("Adding image {} of {}", i + 1, inputs.len()),
+            display_name(path),
+        );
         validate_image_input(path)?;
         let image = embed_image(&mut doc, path)?;
         let (iw, ih) = (image.width as f64, image.height as f64);
@@ -118,7 +129,10 @@ pub fn images_to_pdf(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, op
         kids.push(Object::Reference(page_id));
     }
     let count = kids.len() as i64;
-    doc.objects.insert(pages_id, Object::Dictionary(dictionary! { "Type" => "Pages", "Kids" => kids, "Count" => count }));
+    doc.objects.insert(
+        pages_id,
+        Object::Dictionary(dictionary! { "Type" => "Pages", "Kids" => kids, "Count" => count }),
+    );
     let catalog = doc.add_object(dictionary! { "Type" => "Catalog", "Pages" => pages_id });
     doc.trailer.set("Root", catalog);
     let info = doc.add_object(dictionary! { "Producer" => Object::string_literal("PaperFlow") });
@@ -164,7 +178,12 @@ fn base_name(output_name: &str, input: &std::path::Path) -> String {
     base.strip_suffix(".pdf").map(str::to_string).unwrap_or(base)
 }
 
-pub fn pdf_to_images(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: PdfToImagesOptions) -> AppResult<Staged> {
+pub fn pdf_to_images(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: PdfToImagesOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     let dpi = opts.dpi.clamp(36, 1200);
     let doc = document::load(input)?;
@@ -181,12 +200,22 @@ pub fn pdf_to_images(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, op
     let width = total.to_string().len();
     let mut staged = Staged { folder: Some(format!("{base} - images")), ..Default::default() };
     for (i, page) in pages.iter().enumerate() {
-        ctx.progress_file(i as f64 / pages.len() as f64, format!("Rendering page {page} ({} of {})", i + 1, pages.len()), display_name(input));
+        ctx.progress_file(
+            i as f64 / pages.len() as f64,
+            format!("Rendering page {page} ({} of {})", i + 1, pages.len()),
+            display_name(input),
+        );
         let stem = format!("{base} - page {:0width$}", page);
         let target = out_dir.join(format!("p{page}"));
         let mut args: Vec<String> = vec![
-            flag.into(), "-r".into(), dpi.to_string(),
-            "-f".into(), page.to_string(), "-l".into(), page.to_string(), "-singlefile".into(),
+            flag.into(),
+            "-r".into(),
+            dpi.to_string(),
+            "-f".into(),
+            page.to_string(),
+            "-l".into(),
+            page.to_string(),
+            "-singlefile".into(),
         ];
         if opts.format == ImageFormat::Jpeg {
             args.push("-jpegopt".into());
@@ -197,7 +226,8 @@ pub fn pdf_to_images(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, op
         let out = engines::run(engines::command(Engine::Pdftoppm)?, &args, None, &ctx.cancel, |_| {})?;
         let produced = target.with_extension(ext);
         if !out.success() || !produced.exists() {
-            return Err(AppError::processing(format!("Page {page} could not be rendered.")).with_detail(out.stderr_tail()));
+            return Err(AppError::processing(format!("Page {page} could not be rendered."))
+                .with_detail(out.stderr_tail()));
         }
         staged.files.push((produced, format!("{stem}.{ext}")));
     }
@@ -220,7 +250,12 @@ impl Default for PdfToTextOptions {
     }
 }
 
-pub fn pdf_to_text(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: PdfToTextOptions) -> AppResult<Staged> {
+pub fn pdf_to_text(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: PdfToTextOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     let doc = document::load(input)?;
     let total = doc.get_pages().len() as u32;
@@ -231,7 +266,8 @@ pub fn pdf_to_text(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts
     let mut empty_pages = 0;
     for (i, page) in pages.iter().enumerate() {
         ctx.progress_file(i as f64 / pages.len() as f64, format!("Reading page {page}"), display_name(input));
-        let mut args: Vec<String> = vec!["-enc".into(), "UTF-8".into(), "-f".into(), page.to_string(), "-l".into(), page.to_string()];
+        let mut args: Vec<String> =
+            vec!["-enc".into(), "UTF-8".into(), "-f".into(), page.to_string(), "-l".into(), page.to_string()];
         if opts.layout {
             args.push("-layout".into());
         }
@@ -240,7 +276,8 @@ pub fn pdf_to_text(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts
         args.push(target.display().to_string());
         let out = engines::run(engines::command(Engine::Pdftotext)?, &args, None, &ctx.cancel, |_| {})?;
         if !out.success() {
-            return Err(AppError::processing(format!("Text could not be read from page {page}.")).with_detail(out.stderr_tail()));
+            return Err(AppError::processing(format!("Text could not be read from page {page}."))
+                .with_detail(out.stderr_tail()));
         }
         let page_text = fs::read_to_string(&target).unwrap_or_default();
         let page_text = page_text.trim_end_matches(['\u{c}', '\n']);
@@ -274,7 +311,12 @@ pub struct ExtractImagesOptions {
     pub pages: String,
 }
 
-pub fn extract_images(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: ExtractImagesOptions) -> AppResult<Staged> {
+pub fn extract_images(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: ExtractImagesOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     let doc = document::load(input)?;
     let total = doc.get_pages().len() as u32;
@@ -284,14 +326,25 @@ pub fn extract_images(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, o
     let out_dir = ctx.temp.subdir("extracted")?;
     let source = ctx.stage_input(input)?;
     for (i, page) in pages.iter().enumerate() {
-        ctx.progress_file(i as f64 / pages.len() as f64, format!("Scanning page {page}"), display_name(input));
+        ctx.progress_file(
+            i as f64 / pages.len() as f64,
+            format!("Scanning page {page}"),
+            display_name(input),
+        );
         let args: Vec<String> = vec![
-            "-all".into(), "-p".into(), "-f".into(), page.to_string(), "-l".into(), page.to_string(),
-            source.display().to_string(), out_dir.join("img").display().to_string(),
+            "-all".into(),
+            "-p".into(),
+            "-f".into(),
+            page.to_string(),
+            "-l".into(),
+            page.to_string(),
+            source.display().to_string(),
+            out_dir.join("img").display().to_string(),
         ];
         let out = engines::run(engines::command(Engine::Pdfimages)?, &args, None, &ctx.cancel, |_| {})?;
         if !out.success() {
-            return Err(AppError::processing(format!("Images could not be read from page {page}.")).with_detail(out.stderr_tail()));
+            return Err(AppError::processing(format!("Images could not be read from page {page}."))
+                .with_detail(out.stderr_tail()));
         }
     }
     let mut produced: Vec<PathBuf> = fs::read_dir(&out_dir)?.flatten().map(|e| e.path()).collect();
@@ -324,7 +377,11 @@ mod tests {
         let o = ImagesToPdfOptions { page_size: PageSize::A4, ..Default::default() };
         assert_eq!(page_dimensions(&o, 100.0, 50.0), (841.89, 595.276));
         assert_eq!(page_dimensions(&o, 50.0, 100.0), (595.276, 841.89));
-        let o = ImagesToPdfOptions { page_size: PageSize::Letter, orientation: Orientation::Portrait, ..Default::default() };
+        let o = ImagesToPdfOptions {
+            page_size: PageSize::Letter,
+            orientation: Orientation::Portrait,
+            ..Default::default()
+        };
         assert_eq!(page_dimensions(&o, 100.0, 50.0), (612.0, 792.0));
         let o = ImagesToPdfOptions { page_size: PageSize::Fit, margin: Margin::Small, ..Default::default() };
         assert_eq!(page_dimensions(&o, 400.0, 200.0), (336.0, 186.0));
@@ -338,14 +395,18 @@ mod tests {
         let b = dir.path().join("b.jpg");
         image::RgbImage::from_pixel(20, 40, image::Rgb([200, 10, 10])).save(&b).unwrap();
         let ctx = JobContext::for_tests(dir.path());
-        let opts = ImagesToPdfOptions { page_size: PageSize::A4, margin: Margin::Small, ..Default::default() };
+        let opts =
+            ImagesToPdfOptions { page_size: PageSize::A4, margin: Margin::Small, ..Default::default() };
         let s = images_to_pdf(&ctx, &[a, b], "photos", opts).unwrap();
         assert_eq!(s.files[0].1, "photos.pdf");
         let doc = Document::load(&s.files[0].0).unwrap();
         assert_eq!(doc.get_pages().len(), 2);
         let first = doc.get_dictionary(doc.get_pages()[&1]).unwrap();
         let mb = first.get(b"MediaBox").unwrap().as_array().unwrap();
-        assert!(mb[2].as_float().unwrap() > mb[3].as_float().unwrap(), "landscape image gets a landscape page");
+        assert!(
+            mb[2].as_float().unwrap() > mb[3].as_float().unwrap(),
+            "landscape image gets a landscape page"
+        );
     }
 
     #[test]

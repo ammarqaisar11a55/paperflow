@@ -96,7 +96,13 @@ impl JobManager {
 
     /// Queues a validated operation. `on_update` receives every state
     /// change; `on_finish` runs once when the job ends.
-    pub fn submit(&self, op: PdfOperation, inputs: Vec<PathBuf>, on_update: Listener, on_finish: Listener) -> String {
+    pub fn submit(
+        &self,
+        op: PdfOperation,
+        inputs: Vec<PathBuf>,
+        on_update: Listener,
+        on_finish: Listener,
+    ) -> String {
         let id = uuid::Uuid::new_v4().to_string();
         let cancel = CancelToken::new();
         let snapshot = JobSnapshot {
@@ -163,8 +169,11 @@ impl JobManager {
 }
 
 fn prune_finished(jobs: &mut HashMap<String, Entry>) {
-    let mut finished: Vec<(i64, String)> =
-        jobs.iter().filter(|(_, e)| e.snapshot.status.is_finished()).map(|(k, e)| (e.snapshot.created_at, k.clone())).collect();
+    let mut finished: Vec<(i64, String)> = jobs
+        .iter()
+        .filter(|(_, e)| e.snapshot.status.is_finished())
+        .map(|(k, e)| (e.snapshot.created_at, k.clone()))
+        .collect();
     if finished.len() > KEEP_FINISHED {
         finished.sort();
         for (_, k) in finished.iter().take(finished.len() - KEEP_FINISHED) {
@@ -176,7 +185,9 @@ fn prune_finished(jobs: &mut HashMap<String, Entry>) {
 fn update(inner: &Inner, id: &str, listener: &Listener, f: impl FnOnce(&mut JobSnapshot)) {
     let snap = {
         let mut jobs = inner.jobs.lock().unwrap();
-        let Some(entry) = jobs.get_mut(id) else { return };
+        let Some(entry) = jobs.get_mut(id) else {
+            return;
+        };
         f(&mut entry.snapshot);
         entry.snapshot.clone()
     };
@@ -377,7 +388,12 @@ mod tests {
         // Occupy the only slot so the next job stays queued.
         *mgr.inner.running.lock().unwrap() = 1;
         let (tx, rx) = mpsc::channel();
-        let id = mgr.submit(rotate_op(&pdf, dir.path()), vec![pdf], Arc::new(|_| {}), Arc::new(move |s| tx.send(s.clone()).unwrap()));
+        let id = mgr.submit(
+            rotate_op(&pdf, dir.path()),
+            vec![pdf],
+            Arc::new(|_| {}),
+            Arc::new(move |s| tx.send(s.clone()).unwrap()),
+        );
         assert_eq!(mgr.get(&id).unwrap().status, JobStatus::Queued);
         assert!(mgr.cancel(&id));
         let done = wait_for(&rx, &id);

@@ -227,11 +227,24 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let input = dir.path().join("in.pdf");
         fs::write(&input, b"%PDF-1.4").unwrap();
-        let out = resolve_output_path(dir.path(), "in.pdf", OverwritePolicy::Overwrite, &[input.clone()]);
+        let out = resolve_output_path(
+            dir.path(),
+            "in.pdf",
+            OverwritePolicy::Overwrite,
+            std::slice::from_ref(&input),
+        );
         assert_ne!(out, input);
         let other = dir.path().join("other.pdf");
         fs::write(&other, b"x").unwrap();
-        assert_eq!(resolve_output_path(dir.path(), "other.pdf", OverwritePolicy::Overwrite, &[input.clone()]), other);
+        assert_eq!(
+            resolve_output_path(
+                dir.path(),
+                "other.pdf",
+                OverwritePolicy::Overwrite,
+                std::slice::from_ref(&input)
+            ),
+            other
+        );
         assert_ne!(resolve_output_path(dir.path(), "other.pdf", OverwritePolicy::Rename, &[input]), other);
     }
 

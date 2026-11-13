@@ -81,7 +81,13 @@ pub fn page_frame(doc: &Document, page_id: ObjectId) -> PageFrame {
         }
         None => media,
     };
-    PageFrame { x0: b[0], y0: b[1], width: b[2] - b[0], height: b[3] - b[1], rotation: page_rotation(doc, page_id) }
+    PageFrame {
+        x0: b[0],
+        y0: b[1],
+        width: b[2] - b[0],
+        height: b[3] - b[1],
+        rotation: page_rotation(doc, page_id),
+    }
 }
 
 /// Formats a number for a content stream: short, no exponent.
@@ -126,10 +132,15 @@ mod tests {
         for rotation in [0, 90, 180, 270] {
             let frame = PageFrame { x0: 10.0, y0: 20.0, width: 600.0, height: 800.0, rotation };
             let m = frame.visual_matrix();
-            for (u, v) in [(0.0, 0.0), (frame.visual_width(), 0.0), (5.0, frame.visual_height()), (100.0, 37.0)] {
+            for (u, v) in
+                [(0.0, 0.0), (frame.visual_width(), 0.0), (5.0, frame.visual_height()), (100.0, 37.0)]
+            {
                 let (x, y) = apply(m, u, v);
                 let (du, dv) = displayed(&frame, x, y);
-                assert!((du - u).abs() < 1e-9 && (dv - v).abs() < 1e-9, "rotation {rotation}: ({u},{v}) -> ({du},{dv})");
+                assert!(
+                    (du - u).abs() < 1e-9 && (dv - v).abs() < 1e-9,
+                    "rotation {rotation}: ({u},{v}) -> ({du},{dv})"
+                );
             }
         }
     }

@@ -80,7 +80,12 @@ pub fn ghostscript_args(opts: &CompressOptions, input: &str, output: &str) -> Ve
     args
 }
 
-pub fn compress(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: CompressOptions) -> AppResult<Staged> {
+pub fn compress(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: CompressOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     let name = display_name(input);
     let doc = document::load(input)?;
@@ -94,7 +99,11 @@ pub fn compress(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: C
     let args = ghostscript_args(&opts, &staged_input.display().to_string(), &out_path.display().to_string());
     let output = engines::run(engines::command(Engine::Ghostscript)?, &args, None, &ctx.cancel, |line| {
         if let Some(n) = line.strip_prefix("Page ").and_then(|r| r.trim().parse::<usize>().ok()) {
-            ctx.progress_file(0.02 + 0.9 * n as f64 / total.max(1) as f64, format!("Optimizing page {n} of {total}"), &name);
+            ctx.progress_file(
+                0.02 + 0.9 * n as f64 / total.max(1) as f64,
+                format!("Optimizing page {n} of {total}"),
+                &name,
+            );
         }
     })?;
     if !output.success() || !out_path.exists() {
@@ -108,7 +117,9 @@ pub fn compress(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: C
     let mut staged = Staged { page_count: Some(total), ..Default::default() };
     let new_size = fs::metadata(&out_path)?.len();
     let final_path = if new_size >= original_size {
-        staged.warn("This document is already well optimized. The result is an unchanged copy of the original.");
+        staged.warn(
+            "This document is already well optimized. The result is an unchanged copy of the original.",
+        );
         let copy = ctx.temp.join("original-copy.pdf");
         fs::copy(input, &copy)?;
         copy

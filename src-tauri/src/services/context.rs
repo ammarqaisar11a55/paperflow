@@ -63,7 +63,11 @@ impl JobContext {
     }
 
     pub fn progress(&self, fraction: f64, message: impl Into<String>) {
-        (self.sink)(ProgressUpdate { fraction: Some(fraction.clamp(0.0, 1.0)), message: message.into(), current_file: None });
+        (self.sink)(ProgressUpdate {
+            fraction: Some(fraction.clamp(0.0, 1.0)),
+            message: message.into(),
+            current_file: None,
+        });
     }
 
     pub fn progress_file(&self, fraction: f64, message: impl Into<String>, file: impl Into<String>) {

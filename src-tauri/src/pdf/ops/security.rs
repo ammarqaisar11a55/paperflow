@@ -104,7 +104,16 @@ pub fn protect_argfile(opts: &ProtectOptions, owner: &str, input: &Path, output:
         }
     ));
     lines.push(format!("--extract={}", yn(opts.allow_copying)));
-    lines.push(format!("--modify={}", if opts.allow_modifying { "all" } else if opts.allow_form_filling { "form" } else { "none" }));
+    lines.push(format!(
+        "--modify={}",
+        if opts.allow_modifying {
+            "all"
+        } else if opts.allow_form_filling {
+            "form"
+        } else {
+            "none"
+        }
+    ));
     lines.push(format!("--annotate={}", yn(opts.allow_annotating)));
     lines.push(format!("--form={}", yn(opts.allow_form_filling)));
     lines.push("--".into());
@@ -114,11 +123,18 @@ pub fn protect_argfile(opts: &ProtectOptions, owner: &str, input: &Path, output:
 }
 
 fn is_encrypted(ctx: &JobContext, input: &Path) -> AppResult<bool> {
-    let out = engines::run(engines::command(Engine::Qpdf)?, [&std::ffi::OsString::from("--is-encrypted"), input.as_os_str()], None, &ctx.cancel, |_| {})?;
+    let out = engines::run(
+        engines::command(Engine::Qpdf)?,
+        [&std::ffi::OsString::from("--is-encrypted"), input.as_os_str()],
+        None,
+        &ctx.cancel,
+        |_| {},
+    )?;
     match out.status.code() {
         Some(0) => Ok(true),
         Some(2) => Ok(false),
-        _ => Err(AppError::invalid(format!("“{}” could not be read.", display_name(input))).with_detail(out.stderr_tail())),
+        _ => Err(AppError::invalid(format!("“{}” could not be read.", display_name(input)))
+            .with_detail(out.stderr_tail())),
     }
 }
 
@@ -127,7 +143,12 @@ fn qpdf_ok(code: Option<i32>) -> bool {
     matches!(code, Some(0) | Some(3))
 }
 
-pub fn protect(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: ProtectOptions) -> AppResult<Staged> {
+pub fn protect(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: ProtectOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     validate_pdf_input(input)?;
     if opts.user_password.is_empty() {
@@ -144,14 +165,19 @@ pub fn protect(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: Pr
     let mut staged = Staged::default();
     let owner = if opts.owner_password.is_empty() { random_password() } else { opts.owner_password.clone() };
     if opts.owner_password.is_empty() {
-        staged.warn("No owner password was set, so a random one was used. The restrictions cannot be changed later.");
+        staged.warn(
+            "No owner password was set, so a random one was used. The restrictions cannot be changed later.",
+        );
     }
     let out_path = ctx.temp.join("protected.pdf");
     let argfile = protect_argfile(&opts, &owner, &source, &out_path);
     ctx.progress(0.3, "Encrypting");
-    let out = engines::run(engines::command(Engine::Qpdf)?, ["@-"], Some(argfile.as_bytes()), &ctx.cancel, |_| {})?;
+    let out =
+        engines::run(engines::command(Engine::Qpdf)?, ["@-"], Some(argfile.as_bytes()), &ctx.cancel, |_| {})?;
     if !qpdf_ok(out.status.code()) || !out_path.exists() {
-        return Err(AppError::processing("The document could not be encrypted.").with_detail(out.stderr_tail()));
+        return Err(
+            AppError::processing("The document could not be encrypted.").with_detail(out.stderr_tail())
+        );
     }
     ctx.progress(0.9, "Checking the result");
     if !is_encrypted(ctx, &out_path)? {
@@ -167,7 +193,12 @@ pub struct UnlockOptions {
     pub password: String,
 }
 
-pub fn unlock(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: UnlockOptions) -> AppResult<Staged> {
+pub fn unlock(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: UnlockOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     validate_pdf_input(input)?;
     check_password_text(&opts.password)?;
@@ -180,15 +211,23 @@ pub fn unlock(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: Unl
         return Err(AppError::invalid("Enter the document's password."));
     }
     let out_path = ctx.temp.join("unlocked.pdf");
-    let argfile = format!("--password={}\n--decrypt\n--\n{}\n{}\n", opts.password, source.display(), out_path.display());
+    let argfile = format!(
+        "--password={}\n--decrypt\n--\n{}\n{}\n",
+        opts.password,
+        source.display(),
+        out_path.display()
+    );
     ctx.progress(0.3, "Decrypting");
-    let out = engines::run(engines::command(Engine::Qpdf)?, ["@-"], Some(argfile.as_bytes()), &ctx.cancel, |_| {})?;
+    let out =
+        engines::run(engines::command(Engine::Qpdf)?, ["@-"], Some(argfile.as_bytes()), &ctx.cancel, |_| {})?;
     if !qpdf_ok(out.status.code()) || !out_path.exists() {
         if out.stderr.contains("invalid password") {
             return Err(AppError::new(ErrorKind::WrongPassword, "The password is not correct.")
                 .with_hint("Check the password and try again. Passwords are case-sensitive."));
         }
-        return Err(AppError::processing("The document could not be unlocked.").with_detail(out.stderr_tail()));
+        return Err(
+            AppError::processing("The document could not be unlocked.").with_detail(out.stderr_tail())
+        );
     }
     ctx.progress(0.9, "Checking the result");
     if is_encrypted(ctx, &out_path)? {

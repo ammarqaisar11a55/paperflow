@@ -33,8 +33,16 @@ impl PageRef {
 
 /// Document-level entries carried over from the first source when the output
 /// is derived from a single document (split, extract, organize).
-const KEPT_CATALOG_KEYS: &[&[u8]] =
-    &[b"Outlines", b"Names", b"AcroForm", b"Lang", b"MarkInfo", b"ViewerPreferences", b"OCProperties", b"PageMode"];
+const KEPT_CATALOG_KEYS: &[&[u8]] = &[
+    b"Outlines",
+    b"Names",
+    b"AcroForm",
+    b"Lang",
+    b"MarkInfo",
+    b"ViewerPreferences",
+    b"OCProperties",
+    b"PageMode",
+];
 
 const INHERITABLE: &[&[u8]] = &[b"Resources", b"MediaBox", b"CropBox"];
 
@@ -62,7 +70,10 @@ pub fn assemble(mut sources: Vec<Document>, pages: &[PageRef], keep_structure: b
     for p in pages {
         let count = page_maps.get(p.source).map(|m| m.len()).unwrap_or(0);
         if !page_maps.get(p.source).is_some_and(|m| m.contains_key(&p.page)) {
-            return Err(AppError::invalid(format!("Page {} does not exist (the document has {count} pages).", p.page)));
+            return Err(AppError::invalid(format!(
+                "Page {} does not exist (the document has {count} pages).",
+                p.page
+            )));
         }
     }
 
@@ -125,7 +136,10 @@ pub fn assemble(mut sources: Vec<Document>, pages: &[PageRef], keep_structure: b
     for (i, doc) in sources.into_iter().enumerate() {
         let root = doc.trailer.get(b"Root").and_then(Object::as_reference).ok();
         for (id, obj) in doc.objects {
-            if Some(id) == root || is_type(&obj, b"Pages") || (is_type(&obj, b"Page") && !used[i].contains(&id)) {
+            if Some(id) == root
+                || is_type(&obj, b"Pages")
+                || (is_type(&obj, b"Page") && !used[i].contains(&id))
+            {
                 continue;
             }
             out.objects.insert(id, obj);
@@ -151,7 +165,10 @@ pub fn assemble(mut sources: Vec<Document>, pages: &[PageRef], keep_structure: b
         kids.push(Object::Reference(id));
     }
     let count = kids.len() as i64;
-    out.objects.insert(pages_id, Object::Dictionary(dictionary! { "Type" => "Pages", "Kids" => kids, "Count" => count }));
+    out.objects.insert(
+        pages_id,
+        Object::Dictionary(dictionary! { "Type" => "Pages", "Kids" => kids, "Count" => count }),
+    );
 
     catalog.set("Type", Object::Name(b"Catalog".to_vec()));
     catalog.set("Pages", pages_id);
@@ -172,7 +189,9 @@ fn duplicate_page(doc: &mut Document, original: ObjectId) -> AppResult<ObjectId>
     let mut dict = doc.get_dictionary(original)?.clone();
     let annots: Vec<Object> = match dict.get(b"Annots") {
         Ok(Object::Array(a)) => a.clone(),
-        Ok(Object::Reference(r)) => doc.get_object(*r).and_then(Object::as_array).cloned().unwrap_or_default(),
+        Ok(Object::Reference(r)) => {
+            doc.get_object(*r).and_then(Object::as_array).cloned().unwrap_or_default()
+        }
         _ => Vec::new(),
     };
     dict.remove(b"Annots");
@@ -240,7 +259,10 @@ pub(crate) mod tests {
     }
 
     pub fn page_texts(doc: &Document) -> Vec<String> {
-        doc.get_pages().keys().map(|n| doc.extract_text(&[*n]).unwrap_or_default().trim().to_string()).collect()
+        doc.get_pages()
+            .keys()
+            .map(|n| doc.extract_text(&[*n]).unwrap_or_default().trim().to_string())
+            .collect()
     }
 
     fn roundtrip(mut doc: Document) -> Document {
@@ -253,7 +275,13 @@ pub(crate) mod tests {
     fn merges_in_order() {
         let a = sample_doc(2, "A");
         let b = sample_doc(3, "B");
-        let pages = vec![PageRef::new(0, 1), PageRef::new(0, 2), PageRef::new(1, 1), PageRef::new(1, 2), PageRef::new(1, 3)];
+        let pages = vec![
+            PageRef::new(0, 1),
+            PageRef::new(0, 2),
+            PageRef::new(1, 1),
+            PageRef::new(1, 2),
+            PageRef::new(1, 3),
+        ];
         let out = roundtrip(assemble(vec![a, b], &pages, false).unwrap());
         assert_eq!(page_texts(&out), vec!["A Page 1", "A Page 2", "B Page 1", "B Page 2", "B Page 3"]);
         // Inherited attributes were copied onto the pages.

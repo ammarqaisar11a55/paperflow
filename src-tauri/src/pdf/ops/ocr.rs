@@ -43,7 +43,11 @@ pub fn installed_languages(cancel: &CancelToken) -> AppResult<Vec<String>> {
         .skip_while(|l| !l.starts_with("List of available languages"))
         .skip(1)
         .map(str::trim)
-        .filter(|l| !l.is_empty() && *l != "osd" && l.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-'))
+        .filter(|l| {
+            !l.is_empty()
+                && *l != "osd"
+                && l.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+        })
         .map(str::to_string)
         .collect();
     langs.sort();
@@ -84,29 +88,46 @@ pub fn ocr(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: OcrOpt
         step(0.0, format!("Rendering page {page} of {total}"));
         let image = work.join(format!("page-{page}"));
         let render_args: Vec<String> = vec![
-            "-r".into(), dpi.to_string(), "-jpeg".into(), "-jpegopt".into(), "quality=85".into(),
-            "-f".into(), page.to_string(), "-l".into(), page.to_string(), "-singlefile".into(),
-            source.display().to_string(), image.display().to_string(),
+            "-r".into(),
+            dpi.to_string(),
+            "-jpeg".into(),
+            "-jpegopt".into(),
+            "quality=85".into(),
+            "-f".into(),
+            page.to_string(),
+            "-l".into(),
+            page.to_string(),
+            "-singlefile".into(),
+            source.display().to_string(),
+            image.display().to_string(),
         ];
         let out = engines::run(engines::command(Engine::Pdftoppm)?, &render_args, None, &ctx.cancel, |_| {})?;
         let jpg = image.with_extension("jpg");
         if !out.success() || !jpg.exists() {
-            return Err(AppError::processing(format!("Page {page} could not be rendered.")).with_detail(out.stderr_tail()));
+            return Err(AppError::processing(format!("Page {page} could not be rendered."))
+                .with_detail(out.stderr_tail()));
         }
 
         step(0.3, format!("Recognizing text on page {page} of {total}"));
         let out_base = work.join(format!("ocr-{page}"));
         let ocr_args: Vec<String> = vec![
-            jpg.display().to_string(), out_base.display().to_string(),
-            "-l".into(), language.clone(), "--dpi".into(), dpi.to_string(), "pdf".into(),
+            jpg.display().to_string(),
+            out_base.display().to_string(),
+            "-l".into(),
+            language.clone(),
+            "--dpi".into(),
+            dpi.to_string(),
+            "pdf".into(),
         ];
         let out = engines::run(engines::command(Engine::Tesseract)?, &ocr_args, None, &ctx.cancel, |_| {})?;
         let page_pdf = out_base.with_extension("pdf");
         if !out.success() || !page_pdf.exists() {
-            return Err(AppError::processing(format!("Text recognition failed on page {page}.")).with_detail(out.stderr_tail()));
+            return Err(AppError::processing(format!("Text recognition failed on page {page}."))
+                .with_detail(out.stderr_tail()));
         }
         let page_doc = Document::load(&page_pdf).map_err(|e| {
-            AppError::processing(format!("Text recognition failed on page {page}.")).with_detail(e.to_string())
+            AppError::processing(format!("Text recognition failed on page {page}."))
+                .with_detail(e.to_string())
         })?;
         pages.push(page_doc);
         let _ = std::fs::remove_file(&jpg);

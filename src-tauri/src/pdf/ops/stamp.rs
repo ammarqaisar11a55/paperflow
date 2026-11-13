@@ -135,7 +135,12 @@ impl Default for WatermarkOptions {
     }
 }
 
-pub fn watermark(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: WatermarkOptions) -> AppResult<Staged> {
+pub fn watermark(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: WatermarkOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     let opacity = opts.opacity.clamp(0.0, 1.0);
     if opacity <= 0.0 {
@@ -145,8 +150,10 @@ pub fn watermark(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: 
     let mut doc = document::load(input)?;
     let mut staged = Staged::default();
 
-    let gs = doc.add_object(dictionary! { "Type" => "ExtGState", "ca" => opacity as f32, "CA" => opacity as f32 });
-    let mut base = Overlay { ext_gstates: vec![(GS_NAME.into(), Object::Reference(gs))], ..Default::default() };
+    let gs =
+        doc.add_object(dictionary! { "Type" => "ExtGState", "ca" => opacity as f32, "CA" => opacity as f32 });
+    let mut base =
+        Overlay { ext_gstates: vec![(GS_NAME.into(), Object::Reference(gs))], ..Default::default() };
 
     enum Mark {
         Text { encoded: Vec<u8>, size: f64, width: f64, height: f64, color: [f64; 3] },
@@ -161,15 +168,27 @@ pub fn watermark(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: 
             let size = opts.font_size.clamp(4.0, 400.0);
             let (encoded, lossy) = encode_win_ansi(text, opts.font);
             if lossy {
-                staged.warn("Some characters are not available in the standard PDF fonts and were replaced with “?”.");
+                staged.warn(
+                    "Some characters are not available in the standard PDF fonts and were replaced with “?”.",
+                );
             }
             let font = doc.add_object(opts.font.dictionary());
             base.fonts.push((FONT_NAME.into(), Object::Reference(font)));
             let width = opts.font.text_width(&encoded, size);
-            Mark::Text { encoded, size, width, height: size * opts.font.cap_height(), color: color_or_default(&opts.color, [0.85, 0.3, 0.3])? }
+            Mark::Text {
+                encoded,
+                size,
+                width,
+                height: size * opts.font.cap_height(),
+                color: color_or_default(&opts.color, [0.85, 0.3, 0.3])?,
+            }
         }
         WatermarkKind::Image => {
-            let path = opts.image_path.as_deref().filter(|p| !p.is_empty()).ok_or_else(|| AppError::invalid("Choose an image for the watermark."))?;
+            let path = opts
+                .image_path
+                .as_deref()
+                .filter(|p| !p.is_empty())
+                .ok_or_else(|| AppError::invalid("Choose an image for the watermark."))?;
             let path = PathBuf::from(path);
             validate_image_input(&path)?;
             let image = embed_image(&mut doc, &path)?;
@@ -196,9 +215,12 @@ pub fn watermark(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: 
                 ops.push_str(&format!(
                     "{} cm\n{} {} {} rg\nBT\n/{FONT_NAME} {} Tf\n{} {} Td\n{} Tj\nET\n",
                     fmt_matrix(&rotation_matrix(opts.rotation, ax, ay)),
-                    fmt(color[0]), fmt(color[1]), fmt(color[2]),
+                    fmt(color[0]),
+                    fmt(color[1]),
+                    fmt(color[2]),
                     fmt(*size),
-                    fmt(-width / 2.0), fmt(-height / 2.0),
+                    fmt(-width / 2.0),
+                    fmt(-height / 2.0),
                     hex_string(encoded)
                 ));
             }
@@ -280,7 +302,12 @@ pub fn page_number_label(opts: &PageNumberOptions, number: i64, last: i64) -> St
     format!("{}{}{}", opts.prefix, core, opts.suffix)
 }
 
-pub fn page_numbers(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: PageNumberOptions) -> AppResult<Staged> {
+pub fn page_numbers(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: PageNumberOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     ctx.progress_file(0.05, "Reading document", display_name(input));
     let mut doc = document::load(input)?;
@@ -306,19 +333,33 @@ pub fn page_numbers(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opt
         let width = opts.font.text_width(&encoded, size);
         let height = size * opts.font.cap_height();
         let frame = page_frame(&doc, id);
-        let (ax, ay) = opts.position.anchor(frame.visual_width(), frame.visual_height(), width / 2.0, height / 2.0, opts.margin);
+        let (ax, ay) = opts.position.anchor(
+            frame.visual_width(),
+            frame.visual_height(),
+            width / 2.0,
+            height / 2.0,
+            opts.margin,
+        );
         let ops = format!(
             "q\n{} cm\n{} {} {} rg\nBT\n/{FONT_NAME} {} Tf\n{} {} Td\n{} Tj\nET\nQ\n",
             fmt_matrix(&frame.visual_matrix()),
-            fmt(color[0]), fmt(color[1]), fmt(color[2]),
+            fmt(color[0]),
+            fmt(color[1]),
+            fmt(color[2]),
             fmt(size),
-            fmt(ax - width / 2.0), fmt(ay - height / 2.0),
+            fmt(ax - width / 2.0),
+            fmt(ay - height / 2.0),
             hex_string(&encoded)
         );
-        overlay::apply(&mut doc, id, &Overlay { content: ops.into_bytes(), fonts: fonts.clone(), ..Default::default() })?;
+        overlay::apply(
+            &mut doc,
+            id,
+            &Overlay { content: ops.into_bytes(), fonts: fonts.clone(), ..Default::default() },
+        )?;
     }
     if lossy_any {
-        staged.warn("Some characters are not available in the standard PDF fonts and were replaced with “?”.");
+        staged
+            .warn("Some characters are not available in the standard PDF fonts and were replaced with “?”.");
     }
     ctx.progress(0.9, "Saving");
     let path = ctx.temp.join("numbered.pdf");
@@ -365,8 +406,9 @@ mod tests {
         let input = dir.path().join("in.pdf");
         sample_doc(3, "A").save(&input).unwrap();
         let ctx = JobContext::for_tests(dir.path());
-        let opts = WatermarkOptions { text: "CONFIDENTIAL".into(), pages: "1,3".into(), ..Default::default() };
-        let s = watermark(&ctx, &[input.clone()], "w", opts).unwrap();
+        let opts =
+            WatermarkOptions { text: "CONFIDENTIAL".into(), pages: "1,3".into(), ..Default::default() };
+        let s = watermark(&ctx, std::slice::from_ref(&input), "w", opts).unwrap();
         let t = texts(&s.files[0].0);
         assert!(t[0].contains("CONFIDENTIAL") && t[0].contains("A Page 1"));
         assert!(!t[1].contains("CONFIDENTIAL") && t[1].contains("A Page 2"));
@@ -392,7 +434,8 @@ mod tests {
         let s = watermark(&ctx, &[input], "w", opts).unwrap();
         let doc = lopdf::Document::load(&s.files[0].0).unwrap();
         let page = doc.get_dictionary(doc.get_pages()[&1]).unwrap();
-        let xobjects = page.get(b"Resources").unwrap().as_dict().unwrap().get(b"XObject").unwrap().as_dict().unwrap();
+        let xobjects =
+            page.get(b"Resources").unwrap().as_dict().unwrap().get(b"XObject").unwrap().as_dict().unwrap();
         assert!(xobjects.has(IMAGE_NAME.as_bytes()));
     }
 

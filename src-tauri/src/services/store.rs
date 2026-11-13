@@ -145,7 +145,8 @@ fn write_json<T: Serialize>(path: &Path, value: &T) -> AppResult<()> {
         fs::create_dir_all(dir)?;
     }
     let tmp = path.with_extension("json.tmp");
-    let data = serde_json::to_vec_pretty(value).map_err(|e| AppError::output("Settings could not be saved.").with_detail(e.to_string()))?;
+    let data = serde_json::to_vec_pretty(value)
+        .map_err(|e| AppError::output("Settings could not be saved.").with_detail(e.to_string()))?;
     fs::write(&tmp, data)?;
     fs::rename(&tmp, path)?;
     Ok(())
@@ -222,7 +223,12 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let store = Store::open(dir.path(), dir.path());
         assert_eq!(store.settings(), Settings::default());
-        let s = Settings { theme: Theme::Dark, image_dpi: 5000, compression_preset: "bogus".into(), ..Default::default() };
+        let s = Settings {
+            theme: Theme::Dark,
+            image_dpi: 5000,
+            compression_preset: "bogus".into(),
+            ..Default::default()
+        };
         let saved = store.save_settings(s).unwrap();
         assert_eq!(saved.image_dpi, 1200);
         assert_eq!(saved.compression_preset, "recommended");

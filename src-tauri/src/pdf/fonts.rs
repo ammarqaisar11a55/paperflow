@@ -53,10 +53,8 @@ impl StandardFont {
     /// Width in points of WinAnsi-encoded text at `size`.
     pub fn text_width(self, encoded: &[u8], size: f64) -> f64 {
         let widths = self.widths();
-        let units: u32 = encoded
-            .iter()
-            .map(|&b| if b >= 32 { widths[(b - 32) as usize] as u32 } else { 0 })
-            .sum();
+        let units: u32 =
+            encoded.iter().map(|&b| if b >= 32 { widths[(b - 32) as usize] as u32 } else { 0 }).sum();
         units as f64 * size / 1000.0
     }
 
@@ -165,7 +163,10 @@ mod tests {
 
     #[test]
     fn encodes_win_ansi() {
-        assert_eq!(encode_win_ansi("Café €", StandardFont::Helvetica), (vec![b'C', b'a', b'f', 0xE9, b' ', 0x80], false));
+        assert_eq!(
+            encode_win_ansi("Café €", StandardFont::Helvetica),
+            (vec![b'C', b'a', b'f', 0xE9, b' ', 0x80], false)
+        );
         let (enc, lossy) = encode_win_ansi("日本", StandardFont::Helvetica);
         assert_eq!(enc, b"??");
         assert!(lossy);

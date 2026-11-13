@@ -38,7 +38,16 @@ impl EmbeddedImage {
             3 => [0.0, h, -w, 0.0, x + w, y],
             _ => [w, 0.0, 0.0, h, x, y],
         };
-        format!("{} {} {} {} {} {} cm /{} Do\n", fmt(m[0]), fmt(m[1]), fmt(m[2]), fmt(m[3]), fmt(m[4]), fmt(m[5]), name)
+        format!(
+            "{} {} {} {} {} {} cm /{} Do\n",
+            fmt(m[0]),
+            fmt(m[1]),
+            fmt(m[2]),
+            fmt(m[3]),
+            fmt(m[4]),
+            fmt(m[5]),
+            name
+        )
     }
 }
 
@@ -147,7 +156,10 @@ pub fn embed_image(doc: &mut Document, path: &Path) -> AppResult<EmbeddedImage> 
             };
             if info.components == 4 && info.adobe {
                 // Adobe CMYK JPEGs are stored inverted.
-                dict.set("Decode", vec![1.into(), 0.into(), 1.into(), 0.into(), 1.into(), 0.into(), 1.into(), 0.into()]);
+                dict.set(
+                    "Decode",
+                    vec![1.into(), 0.into(), 1.into(), 0.into(), 1.into(), 0.into(), 1.into(), 0.into()],
+                );
             }
             let id = doc.add_object(Stream::new(dict, data).with_compression(false));
             let (w, h) = if turns % 2 == 1 { (info.height, info.width) } else { (info.width, info.height) };

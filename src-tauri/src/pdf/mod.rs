@@ -7,6 +7,6 @@ pub mod fonts;
 pub mod font_metrics;
 pub mod geometry;
 pub mod images;
+pub mod ops;
 pub mod overlay;
 pub mod ranges;
-pub mod ops;

@@ -25,7 +25,8 @@ pub fn merge(ctx: &JobContext, inputs: &[PathBuf], output_name: &str) -> AppResu
         ctx.progress_file(i as f64 / (inputs.len() + 1) as f64, "Reading documents", display_name(path));
         let doc = document::load(path)?;
         if doc.catalog().map(|c| c.has(b"AcroForm")).unwrap_or(false) && warnings.is_empty() {
-            warnings.push("Interactive form fields from the merged files may no longer be editable.".to_string());
+            warnings
+                .push("Interactive form fields from the merged files may no longer be editable.".to_string());
         }
         let count = doc.get_pages().len() as u32;
         pages.extend((1..=count).map(|p| PageRef::new(i, p)));
@@ -69,7 +70,12 @@ impl Default for SplitOptions {
     }
 }
 
-pub fn split(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: SplitOptions) -> AppResult<Staged> {
+pub fn split(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: SplitOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     ctx.progress_file(0.0, "Reading document", display_name(input));
     let source = document::load(input)?;
@@ -92,15 +98,27 @@ pub fn split(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: Spli
                 })
                 .collect()
         }
-        SplitMode::Every => (1..=total).map(|p| (vec![p], format!("{base} - page {:0width$}.pdf", p))).collect(),
+        SplitMode::Every => {
+            (1..=total).map(|p| (vec![p], format!("{base} - page {:0width$}.pdf", p))).collect()
+        }
         SplitMode::Chunks => ranges::chunks(total, opts.chunk_size)?
             .into_iter()
             .enumerate()
-            .map(|(i, g)| (g, format!("{base} - part {:0w$}.pdf", i + 1, w = (total / opts.chunk_size.max(1) + 1).to_string().len())))
+            .map(|(i, g)| {
+                (
+                    g,
+                    format!(
+                        "{base} - part {:0w$}.pdf",
+                        i + 1,
+                        w = (total / opts.chunk_size.max(1) + 1).to_string().len()
+                    ),
+                )
+            })
             .collect(),
     };
     if groups.len() > 2000 {
-        return Err(AppError::invalid("That would create more than 2,000 files.").with_hint("Use larger ranges or chunks."));
+        return Err(AppError::invalid("That would create more than 2,000 files.")
+            .with_hint("Use larger ranges or chunks."));
     }
 
     let mut staged = Staged { folder: Some(format!("{base} - split")), ..Default::default() };
@@ -136,7 +154,12 @@ pub struct OrganizeOptions {
 
 /// Rebuilds a document from an edited page list (reordered, rotated,
 /// deleted and duplicated pages), as produced by the page organizer.
-pub fn organize(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: OrganizeOptions) -> AppResult<Staged> {
+pub fn organize(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: OrganizeOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     if opts.pages.is_empty() {
         return Err(AppError::invalid("The document must keep at least one page."));
@@ -173,7 +196,12 @@ impl Default for RotateOptions {
 }
 
 /// Turns pages in place, keeping everything else in the document as it was.
-pub fn rotate(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: RotateOptions) -> AppResult<Staged> {
+pub fn rotate(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: RotateOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     let angle = normalize_rotation(opts.angle);
     if angle == 0 {
@@ -208,7 +236,12 @@ pub struct ExtractOptions {
 }
 
 /// Copies the selected pages, in the order given, into a new document.
-pub fn extract_pages(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: ExtractOptions) -> AppResult<Staged> {
+pub fn extract_pages(
+    ctx: &JobContext,
+    inputs: &[PathBuf],
+    output_name: &str,
+    opts: ExtractOptions,
+) -> AppResult<Staged> {
     let input = require_one(inputs)?;
     if opts.pages.trim().is_empty() {
         return Err(AppError::invalid("Enter the pages to extract, for example 1-3, 5."));
@@ -259,23 +292,48 @@ mod tests {
         let a = write_sample(dir.path(), "a.pdf", 5, "A");
         let ctx = JobContext::for_tests(dir.path());
 
-        let s = split(&ctx, &[a.clone()], "a", SplitOptions { mode: SplitMode::Every, ..Default::default() }).unwrap();
+        let s = split(
+            &ctx,
+            std::slice::from_ref(&a),
+            "a",
+            SplitOptions { mode: SplitMode::Every, ..Default::default() },
+        )
+        .unwrap();
         assert_eq!(s.files.len(), 5);
         assert_eq!(s.files[2].1, "a - page 3.pdf");
         assert_eq!(page_texts(&Document::load(&s.files[2].0).unwrap()), vec!["A Page 3"]);
 
-        let s = split(&ctx, &[a.clone()], "a", SplitOptions { mode: SplitMode::Chunks, chunk_size: 2, ..Default::default() })
-            .unwrap();
+        let s = split(
+            &ctx,
+            std::slice::from_ref(&a),
+            "a",
+            SplitOptions { mode: SplitMode::Chunks, chunk_size: 2, ..Default::default() },
+        )
+        .unwrap();
         assert_eq!(s.files.len(), 3);
         assert_eq!(page_texts(&Document::load(&s.files[2].0).unwrap()), vec!["A Page 5"]);
 
-        let s = split(&ctx, &[a.clone()], "a", SplitOptions { mode: SplitMode::Ranges, ranges: "1-2, 4-5".into(), ..Default::default() })
-            .unwrap();
-        assert_eq!(s.files.iter().map(|f| f.1.as_str()).collect::<Vec<_>>(), vec!["a (pages 1-2).pdf", "a (pages 4-5).pdf"]);
+        let s = split(
+            &ctx,
+            std::slice::from_ref(&a),
+            "a",
+            SplitOptions { mode: SplitMode::Ranges, ranges: "1-2, 4-5".into(), ..Default::default() },
+        )
+        .unwrap();
+        assert_eq!(
+            s.files.iter().map(|f| f.1.as_str()).collect::<Vec<_>>(),
+            vec!["a (pages 1-2).pdf", "a (pages 4-5).pdf"]
+        );
         assert_eq!(page_texts(&Document::load(&s.files[1].0).unwrap()), vec!["A Page 4", "A Page 5"]);
         assert!(s.folder.is_some());
 
-        assert!(split(&ctx, &[a], "a", SplitOptions { mode: SplitMode::Ranges, ranges: "9".into(), ..Default::default() }).is_err());
+        assert!(split(
+            &ctx,
+            &[a],
+            "a",
+            SplitOptions { mode: SplitMode::Ranges, ranges: "9".into(), ..Default::default() }
+        )
+        .is_err());
     }
 
     #[test]
@@ -284,21 +342,27 @@ mod tests {
         let a = write_sample(dir.path(), "a.pdf", 3, "A");
         let ctx = JobContext::for_tests(dir.path());
 
-        let pages = vec![OrganizedPage { page: 3, rotate: 90 }, OrganizedPage { page: 1, rotate: 0 }, OrganizedPage { page: 3, rotate: 0 }];
-        let s = organize(&ctx, &[a.clone()], "o", OrganizeOptions { pages }).unwrap();
+        let pages = vec![
+            OrganizedPage { page: 3, rotate: 90 },
+            OrganizedPage { page: 1, rotate: 0 },
+            OrganizedPage { page: 3, rotate: 0 },
+        ];
+        let s = organize(&ctx, std::slice::from_ref(&a), "o", OrganizeOptions { pages }).unwrap();
         let out = Document::load(&s.files[0].0).unwrap();
         assert_eq!(page_texts(&out), vec!["A Page 3", "A Page 1", "A Page 3"]);
         let first = *out.get_pages().get(&1).unwrap();
         assert_eq!(page_rotation(&out, first), 90);
 
-        let s = rotate(&ctx, &[a.clone()], "r", RotateOptions { angle: 270, pages: "2".into() }).unwrap();
+        let s = rotate(&ctx, std::slice::from_ref(&a), "r", RotateOptions { angle: 270, pages: "2".into() })
+            .unwrap();
         let out = Document::load(&s.files[0].0).unwrap();
         let ids = out.get_pages();
         assert_eq!(page_rotation(&out, ids[&1]), 0);
         assert_eq!(page_rotation(&out, ids[&2]), 270);
         assert_eq!(page_texts(&out).len(), 3);
 
-        let s = extract_pages(&ctx, &[a.clone()], "e", ExtractOptions { pages: "3, 1".into() }).unwrap();
+        let s = extract_pages(&ctx, std::slice::from_ref(&a), "e", ExtractOptions { pages: "3, 1".into() })
+            .unwrap();
         assert_eq!(page_texts(&Document::load(&s.files[0].0).unwrap()), vec!["A Page 3", "A Page 1"]);
         assert!(extract_pages(&ctx, &[a], "e", ExtractOptions { pages: "".into() }).is_err());
     }

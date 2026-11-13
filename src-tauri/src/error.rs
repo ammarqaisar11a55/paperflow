@@ -94,13 +94,19 @@ impl From<std::io::Error> for AppError {
     fn from(err: std::io::Error) -> Self {
         use std::io::ErrorKind as Io;
         let (kind, message, hint) = match err.kind() {
-            Io::NotFound => (ErrorKind::InvalidInput, "A file could not be found.", Some("It may have been moved or deleted. Add it again.")),
+            Io::NotFound => (
+                ErrorKind::InvalidInput,
+                "A file could not be found.",
+                Some("It may have been moved or deleted. Add it again."),
+            ),
             Io::PermissionDenied => (
                 ErrorKind::Output,
                 "PaperFlow is not allowed to access this location.",
                 Some("Choose a folder in your home directory or on a removable drive."),
             ),
-            Io::StorageFull => (ErrorKind::Output, "The disk is full.", Some("Free up some space and try again.")),
+            Io::StorageFull => {
+                (ErrorKind::Output, "The disk is full.", Some("Free up some space and try again."))
+            }
             _ => (ErrorKind::Processing, "A file could not be read or written.", None),
         };
         let mut e = AppError::new(kind, message).with_detail(err.to_string());
@@ -116,9 +122,11 @@ impl From<lopdf::Error> for AppError {
                 AppError::new(ErrorKind::Encrypted, "This PDF is password-protected.")
                     .with_hint("Open it with Unlock PDF and your password first, then try again.")
             }
-            other => AppError::invalid("This PDF appears to be damaged or uses features PaperFlow cannot read.")
-                .with_hint("Try opening and re-saving it in another PDF viewer, then try again.")
-                .with_detail(other.to_string()),
+            other => {
+                AppError::invalid("This PDF appears to be damaged or uses features PaperFlow cannot read.")
+                    .with_hint("Try opening and re-saving it in another PDF viewer, then try again.")
+                    .with_detail(other.to_string())
+            }
         }
     }
 }

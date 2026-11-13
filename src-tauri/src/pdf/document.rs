@@ -21,8 +21,11 @@ pub fn load(path: &Path) -> AppResult<Document> {
     if doc.is_encrypted() || doc.was_encrypted() {
         // Opens without a password but carries an owner password with
         // usage restrictions. Lifting those needs the owner password.
-        return Err(AppError::new(ErrorKind::Encrypted, format!("“{name}” has restrictions set by its author."))
-            .with_hint("Remove them with Unlock PDF and the document's owner password, then try again."));
+        return Err(AppError::new(
+            ErrorKind::Encrypted,
+            format!("“{name}” has restrictions set by its author."),
+        )
+        .with_hint("Remove them with Unlock PDF and the document's owner password, then try again."));
     }
     if doc.get_pages().is_empty() {
         return Err(AppError::invalid(format!("“{name}” has no pages.")));
@@ -33,7 +36,8 @@ pub fn load(path: &Path) -> AppResult<Document> {
 /// Saves a document, compressing any uncompressed streams first.
 pub fn save(doc: &mut Document, path: &Path) -> AppResult<()> {
     doc.compress();
-    doc.save(path).map_err(|e| AppError::output("The result could not be written.").with_detail(e.to_string()))?;
+    doc.save(path)
+        .map_err(|e| AppError::output("The result could not be written.").with_detail(e.to_string()))?;
     Ok(())
 }
 
@@ -85,7 +89,10 @@ pub fn number(doc: &Document, obj: &Object) -> Option<f64> {
 
 /// The page's effective rotation, normalised to 0, 90, 180 or 270.
 pub fn page_rotation(doc: &Document, page_id: ObjectId) -> i64 {
-    inherited(doc, page_id, b"Rotate").and_then(|o| number(doc, &o)).map(|r| normalize_rotation(r as i64)).unwrap_or(0)
+    inherited(doc, page_id, b"Rotate")
+        .and_then(|o| number(doc, &o))
+        .map(|r| normalize_rotation(r as i64))
+        .unwrap_or(0)
 }
 
 pub fn normalize_rotation(degrees: i64) -> i64 {

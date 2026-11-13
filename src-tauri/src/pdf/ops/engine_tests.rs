@@ -55,7 +55,13 @@ fn compresses_and_keeps_pages() {
     let dir = tempfile::tempdir().unwrap();
     let input = image_pdf(dir.path());
     let ctx = JobContext::for_tests(dir.path());
-    let s = compress(&ctx, &[input.clone()], "small", CompressOptions { preset: Preset::Extreme, ..Default::default() }).unwrap();
+    let s = compress(
+        &ctx,
+        std::slice::from_ref(&input),
+        "small",
+        CompressOptions { preset: Preset::Extreme, ..Default::default() },
+    )
+    .unwrap();
     let before = fs::metadata(&input).unwrap().len();
     let after = fs::metadata(&s.files[0].0).unwrap().len();
     assert!(after < before, "{after} < {before}");
@@ -70,8 +76,9 @@ fn renders_pages_to_images() {
     let dir = tempfile::tempdir().unwrap();
     let input = sample(dir.path(), 3);
     let ctx = JobContext::for_tests(dir.path());
-    let opts = PdfToImagesOptions { format: ImageFormat::Png, dpi: 72, pages: "1,3".into(), ..Default::default() };
-    let s = pdf_to_images(&ctx, &[input.clone()], "", opts).unwrap();
+    let opts =
+        PdfToImagesOptions { format: ImageFormat::Png, dpi: 72, pages: "1,3".into(), ..Default::default() };
+    let s = pdf_to_images(&ctx, std::slice::from_ref(&input), "", opts).unwrap();
     assert_eq!(s.files.len(), 2);
     assert_eq!(s.files[1].1, "sample - page 3.png");
     let img = image::open(&s.files[0].0).unwrap();
@@ -92,7 +99,8 @@ fn extracts_text() {
     let dir = tempfile::tempdir().unwrap();
     let input = sample(dir.path(), 3);
     let ctx = JobContext::for_tests(dir.path());
-    let s = pdf_to_text(&ctx, &[input], "out", PdfToTextOptions { pages: "2-3".into(), layout: false }).unwrap();
+    let s =
+        pdf_to_text(&ctx, &[input], "out", PdfToTextOptions { pages: "2-3".into(), layout: false }).unwrap();
     assert_eq!(s.files[0].1, "out.txt");
     let text = fs::read_to_string(&s.files[0].0).unwrap();
     assert!(text.contains("Fixture Page 2") && text.contains("Fixture Page 3"));
@@ -125,8 +133,12 @@ fn protects_and_unlocks() {
     let dir = tempfile::tempdir().unwrap();
     let input = sample(dir.path(), 2);
     let ctx = JobContext::for_tests(dir.path());
-    let opts = ProtectOptions { user_password: "open sesame".into(), printing: PrintPermission::None, ..Default::default() };
-    let s = protect(&ctx, &[input.clone()], "locked", opts).unwrap();
+    let opts = ProtectOptions {
+        user_password: "open sesame".into(),
+        printing: PrintPermission::None,
+        ..Default::default()
+    };
+    let s = protect(&ctx, std::slice::from_ref(&input), "locked", opts).unwrap();
     let locked = dir.path().join("locked.pdf");
     fs::copy(&s.files[0].0, &locked).unwrap();
     assert!(!s.warnings.is_empty(), "random owner password is reported");
@@ -135,10 +147,16 @@ fn protects_and_unlocks() {
     let err = crate::pdf::document::load(&locked).unwrap_err();
     assert_eq!(err.kind, ErrorKind::Encrypted);
     // ...or be protected twice.
-    let again = protect(&ctx, &[locked.clone()], "x", ProtectOptions { user_password: "a".into(), ..Default::default() });
+    let again = protect(
+        &ctx,
+        std::slice::from_ref(&locked),
+        "x",
+        ProtectOptions { user_password: "a".into(), ..Default::default() },
+    );
     assert!(again.is_err());
 
-    let wrong = unlock(&ctx, &[locked.clone()], "u", UnlockOptions { password: "nope".into() }).unwrap_err();
+    let wrong = unlock(&ctx, std::slice::from_ref(&locked), "u", UnlockOptions { password: "nope".into() })
+        .unwrap_err();
     assert_eq!(wrong.kind, ErrorKind::WrongPassword);
 
     let s = unlock(&ctx, &[locked], "u", UnlockOptions { password: "open sesame".into() }).unwrap();
@@ -158,13 +176,16 @@ fn ocr_makes_scans_searchable() {
     // Make a "scan": render a text page to an image, then wrap it in a PDF.
     let input = sample(dir.path(), 1);
     let ctx = JobContext::for_tests(dir.path());
-    let rendered = pdf_to_images(&ctx, &[input], "scan", PdfToImagesOptions { dpi: 150, ..Default::default() }).unwrap();
-    let scan = images_to_pdf(&ctx, &[rendered.files[0].0.clone()], "scan", ImagesToPdfOptions::default()).unwrap();
+    let rendered =
+        pdf_to_images(&ctx, &[input], "scan", PdfToImagesOptions { dpi: 150, ..Default::default() }).unwrap();
+    let scan =
+        images_to_pdf(&ctx, &[rendered.files[0].0.clone()], "scan", ImagesToPdfOptions::default()).unwrap();
     let scan_pdf = dir.path().join("scan.pdf");
     fs::copy(&scan.files[0].0, &scan_pdf).unwrap();
 
     // Before OCR there is no text.
-    let before = pdf_to_text(&ctx, &[scan_pdf.clone()], "t", PdfToTextOptions::default()).unwrap();
+    let before =
+        pdf_to_text(&ctx, std::slice::from_ref(&scan_pdf), "t", PdfToTextOptions::default()).unwrap();
     assert!(fs::read_to_string(&before.files[0].0).unwrap().trim().is_empty());
 
     let langs = installed_languages(&ctx.cancel).unwrap();
@@ -190,11 +211,17 @@ fn engines_handle_awkward_paths() {
     sample_doc(2, "Fixture").save(&input).unwrap();
     let ctx = JobContext::for_tests(dir.path());
 
-    let s = protect(&ctx, &[input.clone()], "p", ProtectOptions { user_password: "x".into(), ..Default::default() }).unwrap();
+    let s = protect(
+        &ctx,
+        std::slice::from_ref(&input),
+        "p",
+        ProtectOptions { user_password: "x".into(), ..Default::default() },
+    )
+    .unwrap();
     assert!(s.files[0].0.exists());
-    let s = compress(&ctx, &[input.clone()], "c", CompressOptions::default()).unwrap();
+    let s = compress(&ctx, std::slice::from_ref(&input), "c", CompressOptions::default()).unwrap();
     assert!(s.files[0].0.exists());
-    let s = pdf_to_text(&ctx, &[input.clone()], "t", PdfToTextOptions::default()).unwrap();
+    let s = pdf_to_text(&ctx, std::slice::from_ref(&input), "t", PdfToTextOptions::default()).unwrap();
     assert!(fs::read_to_string(&s.files[0].0).unwrap().contains("Fixture Page 2"));
     assert!(input.exists(), "the original is untouched");
 }
