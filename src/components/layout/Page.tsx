@@ -32,7 +32,7 @@ export function Page({ title, description, back, actions, children, wide, classN
         {title && (
           <div className="mb-7 flex items-end justify-between gap-6">
             <div>
-              <h1 className="text-page font-semibold tracking-[-0.015em]">{title}</h1>
+              <h1 className="text-title font-semibold tracking-[-0.015em]">{title}</h1>
               {description && <p className="mt-1 text-body text-muted">{description}</p>}
             </div>
             {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
