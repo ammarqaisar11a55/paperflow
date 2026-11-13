@@ -2770,7 +2770,6 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-opener",
  "tempfile",
- "thiserror 2.0.21",
  "uuid",
 ]
 
