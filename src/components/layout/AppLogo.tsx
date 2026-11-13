@@ -1,20 +1,17 @@
-/** The PaperFlow mark, drawn inline so it follows the theme's accent. */
+/**
+ * The PaperFlow mark: a page in blue-black ink with a highlighter stroke.
+ * Drawn with fixed colours so it reads the same in light and dark themes.
+ */
 export function AppLogo({ size = 24 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 1024 1024" aria-hidden="true" className="shrink-0">
-      <rect x="64" y="64" width="896" height="896" rx="200" fill="var(--accent)" />
-      <path
-        d="M332 232 H588 L716 360 V752 a40 40 0 0 1 -40 40 H332 a40 40 0 0 1 -40 -40 V272 a40 40 0 0 1 40 -40 Z"
-        fill="#fff"
-      />
-      <path d="M588 232 V320 a40 40 0 0 0 40 40 H716 Z" fill="#D9DAFB" />
-      <path
-        d="M356 600 C 430 520, 500 680, 576 600 S 660 540, 668 560"
-        fill="none"
-        stroke="#5B5CE2"
-        strokeWidth="56"
-        strokeLinecap="round"
-      />
+      <rect x="64" y="64" width="896" height="896" rx="208" fill="#24477A" />
+      <path d="M326 216 H600 L734 350 V770 a44 44 0 0 1 -44 44 H326 a44 44 0 0 1 -44 -44 V260 a44 44 0 0 1 44 -44 Z" fill="#FCFCFA" />
+      <path d="M600 216 V306 a44 44 0 0 0 44 44 H734 Z" fill="#C9D6EA" />
+      <rect x="350" y="392" width="230" height="40" rx="20" fill="#C9D6EA" />
+      <rect x="330" y="486" width="356" height="112" rx="14" fill="#F2C230" transform="rotate(-3 508 542)" />
+      <rect x="370" y="525" width="276" height="40" rx="20" fill="#24477A" />
+      <rect x="350" y="660" width="290" height="40" rx="20" fill="#C9D6EA" />
     </svg>
   );
 }
