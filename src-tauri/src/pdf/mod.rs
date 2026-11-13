@@ -9,3 +9,4 @@ pub mod geometry;
 pub mod images;
 pub mod overlay;
 pub mod ranges;
+pub mod ops;
