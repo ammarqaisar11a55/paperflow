@@ -51,5 +51,9 @@ describe("dashboard suggestions", () => {
     expect(suggestTools([pdfInfo("a.pdf")])).toContain("compress");
     expect(suggestTools([pdfInfo("a.pdf", 1, { encrypted: true })])).toEqual(["unlock"]);
     expect(suggestTools([{ ...pdfInfo("a.png"), kind: "image" }])).toEqual(["images-to-pdf"]);
+    expect(suggestTools([{ ...pdfInfo("a.docx"), kind: "word" }, { ...pdfInfo("b.xlsx"), kind: "spreadsheet" }])).toEqual([
+      "word-to-pdf",
+      "excel-to-pdf",
+    ]);
   });
 });

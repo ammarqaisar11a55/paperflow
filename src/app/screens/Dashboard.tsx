@@ -8,19 +8,29 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState, SectionTitle } from "@/components/ui/Display";
 import { QUICK_ACTIONS, TOOLS, getTool, type ToolId } from "@/features/registry";
 import { api } from "@/services/api";
-import { pickPdfs } from "@/services/dialogs";
+import { pickFiles } from "@/services/dialogs";
 import { useJobs } from "@/stores/jobs";
 import { useNavigation } from "@/stores/navigation";
 import type { FileInfo } from "@/types";
 import { pluralize } from "@/utils/format";
 
 /** Tools suggested for files dropped on the dashboard. */
+const CONVERTERS: Partial<Record<FileInfo["kind"], ToolId>> = {
+  image: "images-to-pdf",
+  word: "word-to-pdf",
+  presentation: "powerpoint-to-pdf",
+  spreadsheet: "excel-to-pdf",
+  html: "html-to-pdf",
+};
+
 export function suggestTools(files: FileInfo[]): ToolId[] {
-  if (files.length && files.every((f) => f.kind === "image")) return ["images-to-pdf"];
+  // Documents that are not PDFs: offer the matching conversion(s).
+  const converters = [...new Set(files.map((f) => CONVERTERS[f.kind]).filter((t): t is ToolId => !!t))];
+  if (files.length && files.every((f) => f.kind !== "pdf")) return converters;
   const pdfs = files.filter((f) => f.kind === "pdf");
   if (pdfs.some((f) => f.encrypted)) return ["unlock"];
   if (pdfs.length > 1) return ["merge", "compress", "rotate", "watermark", "page-numbers", "ocr"];
-  return ["compress", "organize", "split", "pdf-to-images", "watermark", "ocr", "protect", "pdf-to-text"];
+  return ["compress", "organize", "split", "pdf-to-images", "pdf-to-markdown", "watermark", "ocr", "protect"];
 }
 
 export function Dashboard() {
@@ -46,7 +56,7 @@ export function Dashboard() {
       </header>
 
       {staged.length === 0 ? (
-        <DropZone accepts="pdf" onFiles={stage} onBrowse={async () => stage(await pickPdfs(true))} dropLabel="Drop files to choose a tool" />
+        <DropZone accepts="any" onFiles={stage} onBrowse={async () => stage(await pickFiles("any", true))} dropLabel="Drop files to choose a tool" />
       ) : (
         <div className="animate-in rounded-xl border border-accent/40 bg-accent-soft/40 p-5">
           <div className="flex items-start justify-between gap-4">

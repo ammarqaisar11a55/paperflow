@@ -31,7 +31,9 @@ const ENGINE_PURPOSE: Record<string, string> = {
   pdftoppm: "PDF to images, OCR rendering",
   pdftotext: "PDF to text",
   pdfimages: "Extract images",
+  pdftohtml: "PDF to Markdown",
   tesseract: "OCR",
+  libreOffice: "Word, PowerPoint, Excel and HTML to PDF",
 };
 
 export function SettingsScreen() {

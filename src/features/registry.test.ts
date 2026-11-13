@@ -9,7 +9,7 @@ describe("tool registry", () => {
   it("has every tool from the specification, once", () => {
     const ids = TOOLS.map((t) => t.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(ids).toHaveLength(16);
+    expect(ids).toHaveLength(21);
     for (const t of TOOLS) expect(CATEGORIES).toContain(t.category);
     for (const q of QUICK_ACTIONS) expect(getTool(q)).toBeDefined();
   });
@@ -19,7 +19,10 @@ describe("tool registry", () => {
     expect(searchTools("password").map((t) => t.id)).toEqual(expect.arrayContaining(["protect", "unlock"]));
     expect(searchTools("jpg").map((t) => t.id)).toEqual(expect.arrayContaining(["pdf-to-images", "images-to-pdf"]));
     expect(searchTools("  ")).toHaveLength(TOOLS.length);
-    expect(searchTools("spreadsheet")).toHaveLength(0);
+    expect(searchTools("spreadsheet").map((t) => t.id)).toEqual(["excel-to-pdf"]);
+    expect(searchTools("docx").map((t) => t.id)).toEqual(["word-to-pdf"]);
+    expect(searchTools("markdown").map((t) => t.id)).toEqual(["pdf-to-markdown"]);
+    expect(searchTools("blockchain")).toHaveLength(0);
   });
 });
 
