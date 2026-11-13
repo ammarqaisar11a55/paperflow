@@ -1,7 +1,7 @@
 {
   "name": "paperflow",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Offline PDF toolkit. Your PDFs. Your Device. Your Privacy.",
   "license": "MIT",
   "type": "module",

@@ -41,7 +41,7 @@ home folder and on removable drives, and has no network access.
 To install a snap you built yourself or downloaded from a release:
 
 ```bash
-sudo snap install --dangerous paperflow_0.1.0_amd64.snap
+sudo snap install --dangerous paperflow_0.2.0_amd64.snap
 ```
 
 ### Debian / Ubuntu package
@@ -51,7 +51,7 @@ Releases also include a `.deb`. It depends on the distribution's `ghostscript`,
 recommends LibreOffice for the Word, PowerPoint, Excel and HTML converters:
 
 ```bash
-sudo apt install ./PaperFlow_0.1.0_amd64.deb
+sudo apt install ./PaperFlow_0.2.0_amd64.deb
 ```
 
 Every release comes with a `SHA256SUMS` file to check the downloads.

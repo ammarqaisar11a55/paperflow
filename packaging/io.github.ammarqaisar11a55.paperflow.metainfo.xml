@@ -58,6 +58,16 @@
   </keywords>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="0.2.0" date="2026-11-14">
+      <description>
+        <p>New conversions, all running on your computer:</p>
+        <ul>
+          <li>Word, PowerPoint, Excel and HTML to PDF, with an optional PDF/A archival format</li>
+          <li>PDF to Markdown, keeping headings, lists, emphasis and links</li>
+        </ul>
+        <p>Office documents are converted with macros disabled and remote content blocked.</p>
+      </description>
+    </release>
     <release version="0.1.0" date="2026-11-13">
       <description>
         <p>First release.</p>
