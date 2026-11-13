@@ -90,7 +90,8 @@ pub fn compress(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: C
 
     let out_path = ctx.temp.join("compressed.pdf");
     ctx.progress_file(0.02, "Optimizing document", &name);
-    let args = ghostscript_args(&opts, &input.display().to_string(), &out_path.display().to_string());
+    let staged_input = ctx.stage_input(input)?;
+    let args = ghostscript_args(&opts, &staged_input.display().to_string(), &out_path.display().to_string());
     let output = engines::run(engines::command(Engine::Ghostscript)?, &args, None, &ctx.cancel, |line| {
         if let Some(n) = line.strip_prefix("Page ").and_then(|r| r.trim().parse::<usize>().ok()) {
             ctx.progress_file(0.02 + 0.9 * n as f64 / total.max(1) as f64, format!("Optimizing page {n} of {total}"), &name);

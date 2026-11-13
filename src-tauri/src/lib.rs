@@ -26,6 +26,21 @@ pub struct AppState {
 /// Tesseract are heavy, so two keeps the desktop responsive.
 const MAX_CONCURRENT_JOBS: usize = 2;
 
+/// Where job folders live: a per-user folder under the system temporary
+/// directory. Engines' security profiles (AppArmor on Ubuntu) allow /tmp but
+/// not hidden folders such as ~/.cache, and inside the Snap /tmp is private
+/// to PaperFlow.
+pub fn job_temp_root() -> PathBuf {
+    #[cfg(unix)]
+    let user = {
+        use std::os::unix::fs::MetadataExt;
+        std::fs::metadata("/proc/self").map(|m| m.uid().to_string()).unwrap_or_else(|_| "user".into())
+    };
+    #[cfg(not(unix))]
+    let user = "user".to_string();
+    std::env::temp_dir().join(format!("paperflow-{user}"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -33,7 +48,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let paths = app.path();
-            let cache = paths.app_cache_dir()?;
+            let cache = job_temp_root();
             let config = paths.app_config_dir()?;
             let data = paths.app_data_dir()?;
             // Leftovers from an interrupted session: no job can be running yet.

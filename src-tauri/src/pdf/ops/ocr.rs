@@ -75,6 +75,7 @@ pub fn ocr(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: OcrOpt
     drop(doc);
 
     let work = ctx.temp.subdir("ocr")?;
+    let source = ctx.stage_input(input)?;
     let mut pages: Vec<Document> = Vec::with_capacity(total as usize);
     for page in 1..=total {
         let base = page as f64 - 1.0;
@@ -85,7 +86,7 @@ pub fn ocr(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: OcrOpt
         let render_args: Vec<String> = vec![
             "-r".into(), dpi.to_string(), "-jpeg".into(), "-jpegopt".into(), "quality=85".into(),
             "-f".into(), page.to_string(), "-l".into(), page.to_string(), "-singlefile".into(),
-            input.display().to_string(), image.display().to_string(),
+            source.display().to_string(), image.display().to_string(),
         ];
         let out = engines::run(engines::command(Engine::Pdftoppm)?, &render_args, None, &ctx.cancel, |_| {})?;
         let jpg = image.with_extension("jpg");

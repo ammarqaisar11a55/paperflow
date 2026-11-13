@@ -173,6 +173,7 @@ pub fn pdf_to_images(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, op
     let pages = ranges::parse_pages(&opts.pages, total)?;
     let base = base_name(output_name, input);
     let out_dir = ctx.temp.subdir("images")?;
+    let source = ctx.stage_input(input)?;
     let (flag, ext) = match opts.format {
         ImageFormat::Png => ("-png", "png"),
         ImageFormat::Jpeg => ("-jpeg", "jpg"),
@@ -191,7 +192,7 @@ pub fn pdf_to_images(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, op
             args.push("-jpegopt".into());
             args.push(format!("quality={}", opts.quality.clamp(1, 100)));
         }
-        args.push(input.display().to_string());
+        args.push(source.display().to_string());
         args.push(target.display().to_string());
         let out = engines::run(engines::command(Engine::Pdftoppm)?, &args, None, &ctx.cancel, |_| {})?;
         let produced = target.with_extension(ext);
@@ -225,6 +226,7 @@ pub fn pdf_to_text(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts
     let total = doc.get_pages().len() as u32;
     drop(doc);
     let pages = ranges::parse_pages(&opts.pages, total)?;
+    let source = ctx.stage_input(input)?;
     let mut text = String::new();
     let mut empty_pages = 0;
     for (i, page) in pages.iter().enumerate() {
@@ -234,7 +236,7 @@ pub fn pdf_to_text(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts
             args.push("-layout".into());
         }
         let target = ctx.temp.join(format!("page-{page}.txt"));
-        args.push(input.display().to_string());
+        args.push(source.display().to_string());
         args.push(target.display().to_string());
         let out = engines::run(engines::command(Engine::Pdftotext)?, &args, None, &ctx.cancel, |_| {})?;
         if !out.success() {
@@ -280,11 +282,12 @@ pub fn extract_images(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, o
     let pages = ranges::parse_pages(&opts.pages, total)?;
     let base = base_name(output_name, input);
     let out_dir = ctx.temp.subdir("extracted")?;
+    let source = ctx.stage_input(input)?;
     for (i, page) in pages.iter().enumerate() {
         ctx.progress_file(i as f64 / pages.len() as f64, format!("Scanning page {page}"), display_name(input));
         let args: Vec<String> = vec![
             "-all".into(), "-p".into(), "-f".into(), page.to_string(), "-l".into(), page.to_string(),
-            input.display().to_string(), out_dir.join("img").display().to_string(),
+            source.display().to_string(), out_dir.join("img").display().to_string(),
         ];
         let out = engines::run(engines::command(Engine::Pdfimages)?, &args, None, &ctx.cancel, |_| {})?;
         if !out.success() {

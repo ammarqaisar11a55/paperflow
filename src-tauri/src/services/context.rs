@@ -2,7 +2,7 @@
 //! reporter and a private temporary folder. Operations know nothing about
 //! Tauri, which keeps them testable in plain Rust.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
@@ -80,5 +80,22 @@ impl JobContext {
 
     pub fn check(&self) -> AppResult<()> {
         self.cancel.check()
+    }
+
+    /// Copies an input PDF into the job's private folder and returns the copy.
+    ///
+    /// External engines always work on this copy, never on the user's file:
+    /// the original cannot be modified by accident, odd file names (leading
+    /// dashes, unusual characters) cannot be misread as options, and
+    /// distribution security profiles that limit engines to certain
+    /// locations and extensions (such as Ubuntu's AppArmor profiles for
+    /// /usr/bin/gs and /usr/bin/qpdf) are satisfied.
+    pub fn stage_input(&self, path: &Path) -> AppResult<PathBuf> {
+        let dir = self.temp.path().join("inputs");
+        std::fs::create_dir_all(&dir)?;
+        let n = std::fs::read_dir(&dir).map(|d| d.count()).unwrap_or(0);
+        let copy = dir.join(format!("input-{n}.pdf"));
+        std::fs::copy(path, &copy)?;
+        Ok(copy)
     }
 }

@@ -176,3 +176,25 @@ fn ocr_makes_scans_searchable() {
     let text = fs::read_to_string(&after.files[0].0).unwrap();
     assert!(text.contains("Fixture Page 1"), "OCR text was: {text:?}");
 }
+
+#[test]
+fn engines_handle_awkward_paths() {
+    if !have(&[Engine::Qpdf, Engine::Ghostscript, Engine::Pdftotext]) {
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    // A hidden folder and a name that looks like an option.
+    let hidden = dir.path().join(".private docs");
+    fs::create_dir_all(&hidden).unwrap();
+    let input = hidden.join("-report (final).PDF");
+    sample_doc(2, "Fixture").save(&input).unwrap();
+    let ctx = JobContext::for_tests(dir.path());
+
+    let s = protect(&ctx, &[input.clone()], "p", ProtectOptions { user_password: "x".into(), ..Default::default() }).unwrap();
+    assert!(s.files[0].0.exists());
+    let s = compress(&ctx, &[input.clone()], "c", CompressOptions::default()).unwrap();
+    assert!(s.files[0].0.exists());
+    let s = pdf_to_text(&ctx, &[input.clone()], "t", PdfToTextOptions::default()).unwrap();
+    assert!(fs::read_to_string(&s.files[0].0).unwrap().contains("Fixture Page 2"));
+    assert!(input.exists(), "the original is untouched");
+}

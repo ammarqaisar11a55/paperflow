@@ -136,7 +136,8 @@ pub fn protect(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: Pr
     check_password_text(&opts.user_password)?;
     check_password_text(&opts.owner_password)?;
     ctx.progress_file(0.1, "Checking document", display_name(input));
-    if is_encrypted(ctx, input)? {
+    let source = ctx.stage_input(input)?;
+    if is_encrypted(ctx, &source)? {
         return Err(AppError::invalid(format!("“{}” is already password-protected.", display_name(input)))
             .with_hint("Unlock it first if you want to change its password."));
     }
@@ -146,7 +147,7 @@ pub fn protect(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: Pr
         staged.warn("No owner password was set, so a random one was used. The restrictions cannot be changed later.");
     }
     let out_path = ctx.temp.join("protected.pdf");
-    let argfile = protect_argfile(&opts, &owner, input, &out_path);
+    let argfile = protect_argfile(&opts, &owner, &source, &out_path);
     ctx.progress(0.3, "Encrypting");
     let out = engines::run(engines::command(Engine::Qpdf)?, ["@-"], Some(argfile.as_bytes()), &ctx.cancel, |_| {})?;
     if !qpdf_ok(out.status.code()) || !out_path.exists() {
@@ -171,14 +172,15 @@ pub fn unlock(ctx: &JobContext, inputs: &[PathBuf], output_name: &str, opts: Unl
     validate_pdf_input(input)?;
     check_password_text(&opts.password)?;
     ctx.progress_file(0.1, "Checking document", display_name(input));
-    if !is_encrypted(ctx, input)? {
+    let source = ctx.stage_input(input)?;
+    if !is_encrypted(ctx, &source)? {
         return Err(AppError::invalid(format!("“{}” is not password-protected.", display_name(input))));
     }
     if opts.password.is_empty() {
         return Err(AppError::invalid("Enter the document's password."));
     }
     let out_path = ctx.temp.join("unlocked.pdf");
-    let argfile = format!("--password={}\n--decrypt\n--\n{}\n{}\n", opts.password, input.display(), out_path.display());
+    let argfile = format!("--password={}\n--decrypt\n--\n{}\n{}\n", opts.password, source.display(), out_path.display());
     ctx.progress(0.3, "Decrypting");
     let out = engines::run(engines::command(Engine::Qpdf)?, ["@-"], Some(argfile.as_bytes()), &ctx.cancel, |_| {})?;
     if !qpdf_ok(out.status.code()) || !out_path.exists() {
