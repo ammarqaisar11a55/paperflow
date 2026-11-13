@@ -18,7 +18,10 @@
         "minWidth": 1024,
         "minHeight": 640,
         "center": true,
-        "dragDropEnabled": true
+        "dragDropEnabled": true,
+        "decorations": false,
+        "resizable": true,
+        "shadow": true
       }
     ],
     "security": {
@@ -27,7 +30,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["deb"],
+    "targets": [
+      "deb"
+    ],
     "category": "Office",
     "shortDescription": "Offline PDF toolkit",
     "longDescription": "PaperFlow merges, splits, compresses, organizes, converts, watermarks, protects and OCRs PDF files entirely on your computer. Nothing is uploaded.",
@@ -41,7 +46,13 @@
     ],
     "linux": {
       "deb": {
-        "depends": ["ghostscript", "poppler-utils", "qpdf", "tesseract-ocr", "tesseract-ocr-eng"]
+        "depends": [
+          "ghostscript",
+          "poppler-utils",
+          "qpdf",
+          "tesseract-ocr",
+          "tesseract-ocr-eng"
+        ]
       }
     }
   }
