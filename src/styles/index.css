@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+/* Dark mode follows the data-theme attribute, not only the OS setting. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * PaperFlow design tokens.
+ * Components use semantic utilities (bg-surface, text-muted, border-line…),
+ * never raw colours. Light is the default; dark applies with data-theme="dark"
+ * on <html> (set from the user's preference or the system theme).
+ */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --surface-3: #e8ebf0;
+  --text: #20242c;
+  --text-muted: #697386;
+  --line: #e5e8ee;
+  --line-strong: #d3d8e0;
+  --accent: #5b5ce2;
+  --accent-hover: #4949c8;
+  --accent-soft: #ececfc;
+  --accent-contrast: #ffffff;
+  --success: #16865c;
+  --success-soft: #e3f4ec;
+  --warning: #b8740f;
+  --warning-soft: #fcf1df;
+  --danger: #d94c4c;
+  --danger-soft: #fbe7e7;
+  --overlay: rgb(20 22 28 / 0.32);
+  --shadow-color: 220 20% 20%;
+  --page: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #17191e;
+  --surface: #20232a;
+  --surface-2: #272b33;
+  --surface-3: #2f343d;
+  --text: #f0f2f6;
+  --text-muted: #a0a7b4;
+  --line: #343944;
+  --line-strong: #444a57;
+  --accent: #8585ff;
+  --accent-hover: #9a9aff;
+  --accent-soft: #2c2d52;
+  --accent-contrast: #14152b;
+  --success: #48c995;
+  --success-soft: #1d3a2f;
+  --warning: #e6ad4c;
+  --warning-soft: #3d3221;
+  --danger: #f07878;
+  --danger-soft: #432627;
+  --overlay: rgb(0 0 0 / 0.5);
+  --shadow-color: 220 40% 2%;
+  --page: #ffffff;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-page: var(--page);
+
+  --font-sans: "Inter Variable", "Inter", "Ubuntu", "Cantarell", system-ui, sans-serif;
+
+  --text-caption: 11.5px;
+  --text-caption--line-height: 16px;
+  --text-secondary: 12.5px;
+  --text-secondary--line-height: 18px;
+  --text-body: 13.5px;
+  --text-body--line-height: 20px;
+  --text-card: 14.5px;
+  --text-card--line-height: 20px;
+  --text-section: 16px;
+  --text-section--line-height: 22px;
+  --text-page: 24px;
+  --text-page--line-height: 30px;
+  --text-hero: 30px;
+  --text-hero--line-height: 36px;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --shadow-card: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 1px 1px hsl(var(--shadow-color) / 0.04);
+  --shadow-raised: 0 4px 16px -4px hsl(var(--shadow-color) / 0.14), 0 1px 3px hsl(var(--shadow-color) / 0.08);
+  --shadow-pop: 0 12px 32px -8px hsl(var(--shadow-color) / 0.28), 0 2px 6px hsl(var(--shadow-color) / 0.1);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    line-height: 20px;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    user-select: none;
+    cursor: default;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"],
+  .selectable {
+    user-select: text;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  button {
+    cursor: default;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes pf-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-in {
+  animation: pf-fade-in 140ms ease-out;
+}
+
+@keyframes pf-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+/* PDF.js text layer: invisible, selectable text positioned over each page. */
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  line-height: 1;
+  text-align: initial;
+  transform-origin: 0 0;
+  z-index: 1;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  user-select: text;
+}
+.textLayer > :not(.markedContent),
+.textLayer .markedContent span:not(.markedContent) {
+  --font-height: 0;
+  --scale-x: 1;
+  --rotate: 0deg;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+.textLayer .markedContent {
+  display: contents;
+}
+.textLayer ::selection {
+  background: rgb(91 92 226 / 0.3);
+  color: transparent;
+}
+.textLayer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  user-select: none;
+}
+.textLayer .pf-hit {
+  background: rgb(255 200 0 / 0.42);
+  border-radius: 2px;
+}
+.textLayer .pf-hit-current {
+  background: rgb(255 140 0 / 0.62);
+  outline: 2px solid rgb(255 140 0 / 0.9);
+}
