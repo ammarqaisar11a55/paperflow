@@ -6,7 +6,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-pdfjs-assets.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/copy-pdfjs-assets.mjs",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

@@ -29,3 +29,6 @@ tests/output/
 
 # Tauri generated schemas
 src-tauri/gen/
+
+# Copied from pdfjs-dist by scripts/copy-pdfjs-assets.mjs
+public/pdfjs/
