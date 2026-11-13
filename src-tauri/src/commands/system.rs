@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use serde::Serialize;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Runtime, State};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::error::{AppError, AppResult};
@@ -54,14 +54,16 @@ pub async fn ocr_languages() -> AppResult<Vec<String>> {
 fn existing(path: &str) -> AppResult<PathBuf> {
     let p = PathBuf::from(path);
     if !p.is_absolute() || !p.exists() {
-        return Err(AppError::invalid("That file no longer exists.").with_hint("It may have been moved or deleted."));
+        return Err(
+            AppError::invalid("That file no longer exists.").with_hint("It may have been moved or deleted.")
+        );
     }
     Ok(p)
 }
 
 /// Opens a result with the default application.
 #[tauri::command]
-pub fn open_path(app: AppHandle, path: String) -> AppResult<()> {
+pub fn open_path<R: Runtime>(app: AppHandle<R>, path: String) -> AppResult<()> {
     let p = existing(&path)?;
     app.opener()
         .open_path(p.display().to_string(), None::<&str>)
@@ -70,10 +72,17 @@ pub fn open_path(app: AppHandle, path: String) -> AppResult<()> {
 
 /// Shows a result in the file manager.
 #[tauri::command]
-pub fn reveal_path(app: AppHandle, path: String) -> AppResult<()> {
+pub fn reveal_path<R: Runtime>(app: AppHandle<R>, path: String) -> AppResult<()> {
     let p = existing(&path)?;
+    if app.opener().reveal_item_in_dir(&p).is_ok() {
+        return Ok(());
+    }
+    // Some sandboxes allow neither the file manager's D-Bus service nor the
+    // portal: open the containing folder instead.
+    let folder =
+        if p.is_dir() { p.clone() } else { p.parent().map(|d| d.to_path_buf()).unwrap_or(p.clone()) };
     app.opener()
-        .reveal_item_in_dir(&p)
+        .open_path(folder.display().to_string(), None::<&str>)
         .map_err(|e| AppError::processing("The folder could not be opened.").with_detail(e.to_string()))
 }
 
@@ -85,7 +94,8 @@ pub fn temp_usage(state: State<'_, AppState>) -> u64 {
 #[tauri::command]
 pub fn clear_temp(state: State<'_, AppState>) -> AppResult<u64> {
     if state.jobs.has_active() {
-        return Err(AppError::invalid("Temporary files are in use.").with_hint("Wait for the running jobs to finish."));
+        return Err(AppError::invalid("Temporary files are in use.")
+            .with_hint("Wait for the running jobs to finish."));
     }
     temp::clear_all(&state.temp_root)
 }
@@ -103,7 +113,7 @@ pub struct AppInfo {
 }
 
 #[tauri::command]
-pub fn app_info(app: AppHandle) -> AppInfo {
+pub fn app_info<R: Runtime>(app: AppHandle<R>) -> AppInfo {
     let pkg = app.package_info();
     AppInfo {
         name: pkg.name.clone(),
