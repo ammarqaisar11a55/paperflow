@@ -95,10 +95,16 @@ impl JobContext {
     /// locations and extensions (such as Ubuntu's AppArmor profiles for
     /// /usr/bin/gs and /usr/bin/qpdf) are satisfied.
     pub fn stage_input(&self, path: &Path) -> AppResult<PathBuf> {
+        self.stage_input_as(path, "pdf")
+    }
+
+    /// Like [`Self::stage_input`], keeping the given extension (engines such
+    /// as LibreOffice choose how to read a file by its extension).
+    pub fn stage_input_as(&self, path: &Path, extension: &str) -> AppResult<PathBuf> {
         let dir = self.temp.path().join("inputs");
         std::fs::create_dir_all(&dir)?;
         let n = std::fs::read_dir(&dir).map(|d| d.count()).unwrap_or(0);
-        let copy = dir.join(format!("input-{n}.pdf"));
+        let copy = dir.join(format!("input-{n}.{extension}"));
         std::fs::copy(path, &copy)?;
         Ok(copy)
     }

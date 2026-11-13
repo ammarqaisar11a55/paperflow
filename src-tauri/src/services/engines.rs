@@ -10,6 +10,8 @@
 //! | Poppler     | Rendering to images, text, image extraction|
 //! | qpdf        | Password protection and unlocking          |
 //! | Tesseract   | OCR                                        |
+//! | LibreOffice | Word, PowerPoint, Excel and HTML to PDF    |
+//! | Poppler     | Layout for PDF to Markdown (`pdftohtml`)   |
 //!
 //! Inside the Snap they live in `$SNAP/usr/bin`. During development they come
 //! from `PATH`, or from `PAPERFLOW_ENGINE_DIR` (see `scripts/dev-engines.sh`).
@@ -36,17 +38,21 @@ pub enum Engine {
     Pdftoppm,
     Pdftotext,
     Pdfimages,
+    Pdftohtml,
     Tesseract,
+    LibreOffice,
 }
 
 impl Engine {
-    pub const ALL: [Engine; 6] = [
+    pub const ALL: [Engine; 8] = [
         Engine::Ghostscript,
         Engine::Qpdf,
         Engine::Pdftoppm,
         Engine::Pdftotext,
         Engine::Pdfimages,
+        Engine::Pdftohtml,
         Engine::Tesseract,
+        Engine::LibreOffice,
     ];
 
     pub fn binary(self) -> &'static str {
@@ -56,7 +62,9 @@ impl Engine {
             Engine::Pdftoppm => "pdftoppm",
             Engine::Pdftotext => "pdftotext",
             Engine::Pdfimages => "pdfimages",
+            Engine::Pdftohtml => "pdftohtml",
             Engine::Tesseract => "tesseract",
+            Engine::LibreOffice => "soffice",
         }
     }
 
@@ -64,8 +72,9 @@ impl Engine {
         match self {
             Engine::Ghostscript => "Ghostscript",
             Engine::Qpdf => "qpdf",
-            Engine::Pdftoppm | Engine::Pdftotext | Engine::Pdfimages => "Poppler",
+            Engine::Pdftoppm | Engine::Pdftotext | Engine::Pdfimages | Engine::Pdftohtml => "Poppler",
             Engine::Tesseract => "Tesseract OCR",
+            Engine::LibreOffice => "LibreOffice",
         }
     }
 
@@ -73,16 +82,17 @@ impl Engine {
         match self {
             Engine::Ghostscript => "ghostscript",
             Engine::Qpdf => "qpdf",
-            Engine::Pdftoppm | Engine::Pdftotext | Engine::Pdfimages => "poppler-utils",
+            Engine::Pdftoppm | Engine::Pdftotext | Engine::Pdfimages | Engine::Pdftohtml => "poppler-utils",
             Engine::Tesseract => "tesseract-ocr",
+            Engine::LibreOffice => "libreoffice-writer-nogui",
         }
     }
 
     fn version_args(self) -> &'static [&'static str] {
         match self {
             Engine::Ghostscript => &["--version"],
-            Engine::Qpdf | Engine::Tesseract => &["--version"],
-            Engine::Pdftoppm | Engine::Pdftotext | Engine::Pdfimages => &["-v"],
+            Engine::Qpdf | Engine::Tesseract | Engine::LibreOffice => &["--version"],
+            Engine::Pdftoppm | Engine::Pdftotext | Engine::Pdfimages | Engine::Pdftohtml => &["-v"],
         }
     }
 }
@@ -110,7 +120,17 @@ fn search_dirs() -> Vec<PathBuf> {
 
 /// Finds an engine executable, or `None` when it is not installed.
 pub fn locate(engine: Engine) -> Option<PathBuf> {
-    search_dirs().into_iter().map(|d| d.join(engine.binary())).find(|p| is_executable(p))
+    let dirs = search_dirs();
+    let direct = dirs.iter().map(|d| d.join(engine.binary())).find(|p| is_executable(p));
+    if direct.is_some() || engine != Engine::LibreOffice {
+        return direct;
+    }
+    // LibreOffice keeps its launcher in <prefix>/lib/libreoffice/program; the
+    // usual /usr/bin/soffice link may be missing in a bundle.
+    dirs.iter()
+        .filter_map(|d| d.parent())
+        .map(|prefix| prefix.join("lib/libreoffice/program/soffice"))
+        .find(|p| is_executable(p))
 }
 
 fn is_executable(path: &Path) -> bool {
@@ -181,13 +201,27 @@ fn ghostscript_lib_path() -> Option<std::ffi::OsString> {
 /// Builds a command for an engine with a clean, predictable environment.
 pub fn command(engine: Engine) -> AppResult<Command> {
     let path = locate(engine).ok_or_else(|| missing(engine))?;
+    let mut lib_paths: Vec<PathBuf> = Vec::new();
+    if engine == Engine::LibreOffice {
+        // LibreOffice's libraries must be found in its own program folder.
+        // Ubuntu also links some of them into the general library folder,
+        // and when LD_LIBRARY_PATH points there (as it does inside the Snap)
+        // those copies load first and then cannot find their siblings.
+        if let Some(program) =
+            std::fs::canonicalize(&path).ok().and_then(|p| p.parent().map(Path::to_path_buf))
+        {
+            lib_paths.push(program);
+        }
+    }
     let mut cmd = Command::new(path);
     if let Some(libs) = std::env::var_os("PAPERFLOW_ENGINE_LIB") {
-        let mut paths = std::env::split_paths(&libs).collect::<Vec<_>>();
+        lib_paths.extend(std::env::split_paths(&libs));
+    }
+    if !lib_paths.is_empty() {
         if let Some(existing) = std::env::var_os("LD_LIBRARY_PATH") {
-            paths.extend(std::env::split_paths(&existing));
+            lib_paths.extend(std::env::split_paths(&existing));
         }
-        if let Ok(joined) = std::env::join_paths(paths) {
+        if let Ok(joined) = std::env::join_paths(lib_paths) {
             cmd.env("LD_LIBRARY_PATH", joined);
         }
     }
@@ -203,8 +237,19 @@ pub fn command(engine: Engine) -> AppResult<Command> {
         // One thread per page keeps the machine responsive; pages run in sequence.
         cmd.env("OMP_THREAD_LIMIT", "2");
     }
+    if engine == Engine::LibreOffice {
+        // Render without any display connection.
+        cmd.env("SAL_USE_VCLPLUGIN", "svp");
+    }
     // Messages must be parseable regardless of the user's locale.
     cmd.env("LC_ALL", "C");
+    #[cfg(unix)]
+    {
+        // Its own process group, so cancelling also stops any helper
+        // processes it starts (LibreOffice launches several).
+        use std::os::unix::process::CommandExt;
+        cmd.process_group(0);
+    }
     Ok(cmd)
 }
 
@@ -224,6 +269,22 @@ pub fn version(engine: Engine) -> Option<String> {
     let out = cmd.args(engine.version_args()).stdin(Stdio::null()).output().ok()?;
     let text = if out.stdout.is_empty() { out.stderr } else { out.stdout };
     String::from_utf8_lossy(&text).lines().find(|l| !l.trim().is_empty()).map(|l| l.trim().to_string())
+}
+
+/// Stops a child and every process in its group.
+fn kill_group(child: &mut std::process::Child) {
+    #[cfg(unix)]
+    {
+        // The child leads its own process group (see `command`).
+        if let Ok(pid) = i32::try_from(child.id()) {
+            // SAFETY: kill(2) with a negative pid signals that process group;
+            // it has no memory-safety preconditions.
+            unsafe {
+                libc::kill(-pid, libc::SIGKILL);
+            }
+        }
+    }
+    let _ = child.kill();
 }
 
 #[derive(Debug)]
@@ -303,7 +364,7 @@ where
             Err(mpsc::RecvTimeoutError::Disconnected) => {}
         }
         if cancel.is_cancelled() {
-            let _ = child.kill();
+            kill_group(&mut child);
             let _ = child.wait();
             let _ = out_reader.join();
             let _ = err_reader.join();
