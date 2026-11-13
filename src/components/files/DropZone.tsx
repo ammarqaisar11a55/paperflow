@@ -1,10 +1,12 @@
 import { useEffect } from "react";
-import { FilePlus2, ImagePlus } from "lucide-react";
+import { FilePlus2 } from "lucide-react";
+import { KINDS, type InputKind } from "@/features/fileKinds";
 import { useDrop } from "@/stores/drop";
 import { cn } from "@/utils/cn";
 
 interface DropZoneProps {
-  accepts: "pdf" | "image";
+  /** A file kind, or "any" for every supported kind. */
+  accepts: InputKind | "any";
   multiple?: boolean;
   onFiles: (paths: string[]) => void;
   onBrowse: () => void;
@@ -23,9 +25,10 @@ export function DropZone({ accepts, multiple = true, onFiles, onBrowse, dropLabe
   const dragging = useDrop((s) => s.dragging);
   useEffect(() => register(onFiles, dropLabel), [register, onFiles, dropLabel]);
 
-  const Icon = accepts === "pdf" ? FilePlus2 : ImagePlus;
-  const noun = accepts === "pdf" ? (multiple ? "PDF files" : "a PDF file") : multiple ? "images" : "an image";
-  const types = accepts === "pdf" ? "PDF" : "PNG, JPEG, WebP, TIFF, BMP, GIF";
+  const info = accepts === "any" ? null : KINDS[accepts];
+  const Icon = info?.icon ?? FilePlus2;
+  const noun = info ? (multiple ? info.many : info.one) : "files";
+  const types = info ? info.types : "PDF, Word, PowerPoint, Excel, HTML, images";
 
   return (
     <button

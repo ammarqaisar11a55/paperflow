@@ -6,6 +6,18 @@ import type { FileSelection } from "@/hooks/useFileSelection";
 import { usePointerSort } from "@/hooks/usePointerSort";
 import { cn } from "@/utils/cn";
 import { ImagePreview } from "./ImagePreview";
+import { KINDS, type InputKind } from "@/features/fileKinds";
+import type { FileKind } from "@/types";
+
+/** Documents without a thumbnail show their type's icon. */
+function KindIcon({ kind }: { kind: FileKind }) {
+  const Icon = kind in KINDS ? KINDS[kind as InputKind].icon : KINDS.pdf.icon;
+  return (
+    <div className="flex h-full items-center justify-center text-[#9aa1ad]">
+      <Icon size={15} />
+    </div>
+  );
+}
 import { formatBytes, pluralize } from "@/utils/format";
 
 interface FileListProps {
@@ -71,8 +83,10 @@ export function FileList({ selection, orderable, title = "Selected files" }: Fil
                     ) : (
                       <PdfThumbnail path={f.path} page={1} width={72} className="h-full w-full" />
                     )
-                  ) : (
+                  ) : f.kind === "image" ? (
                     <ImagePreview path={f.path} />
+                  ) : (
+                    <KindIcon kind={f.kind} />
                   )}
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">

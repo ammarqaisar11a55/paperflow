@@ -1,10 +1,11 @@
 import { useCallback, useState } from "react";
 import { api } from "@/services/api";
 import type { FileInfo } from "@/types";
+import { KINDS, type InputKind } from "@/features/fileKinds";
 import { moveIds } from "./usePointerSort";
 
 export interface SelectionOptions {
-  accepts: "pdf" | "image";
+  accepts: InputKind;
   /** Keep at most one file (a new one replaces it). */
   single?: boolean;
 }
@@ -29,7 +30,7 @@ export function useFileSelection({ accepts, single }: SelectionOptions) {
         setRejected(
           bad.map((f) =>
             f.kind !== accepts
-              ? `“${f.name}” is not ${accepts === "pdf" ? "a PDF" : "a supported image"}.`
+              ? `“${f.name}” is not ${KINDS[accepts].one}.`
               : (f.error ?? `“${f.name}” could not be read.`),
           ),
         );

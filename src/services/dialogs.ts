@@ -1,24 +1,25 @@
 // Native file and folder pickers.
 import { open } from "@tauri-apps/plugin-dialog";
-
-const PDF_FILTER = { name: "PDF documents", extensions: ["pdf", "PDF"] };
-const IMAGE_FILTER = {
-  name: "Images",
-  extensions: ["png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff", "gif", "PNG", "JPG", "JPEG"],
-};
+import { ALL_KINDS, dialogFilter, KINDS, type InputKind } from "@/features/fileKinds";
 
 function asArray(value: string | string[] | null): string[] {
   if (!value) return [];
   return Array.isArray(value) ? value : [value];
 }
 
-export async function pickPdfs(multiple = true): Promise<string[]> {
-  return asArray(await open({ multiple, directory: false, filters: [PDF_FILTER], title: "Choose PDF files" }));
+/** Picks files of one kind (or of every supported kind for "any"). */
+export async function pickFiles(kind: InputKind | "any", multiple = true): Promise<string[]> {
+  const kinds = kind === "any" ? ALL_KINDS : [kind];
+  const filters = kinds.map(dialogFilter);
+  if (kind === "any") {
+    filters.unshift({ name: "All supported files", extensions: filters.flatMap((f) => f.extensions) });
+  }
+  const title = kind === "any" ? "Choose files" : `Choose ${KINDS[kind].many}`;
+  return asArray(await open({ multiple, directory: false, filters, title }));
 }
 
-export async function pickImages(multiple = true): Promise<string[]> {
-  return asArray(await open({ multiple, directory: false, filters: [IMAGE_FILTER], title: "Choose images" }));
-}
+export const pickPdfs = (multiple = true) => pickFiles("pdf", multiple);
+export const pickImages = (multiple = true) => pickFiles("image", multiple);
 
 export async function pickFolder(defaultPath?: string | null): Promise<string | null> {
   const result = await open({ directory: true, multiple: false, defaultPath: defaultPath ?? undefined, title: "Choose a folder" });

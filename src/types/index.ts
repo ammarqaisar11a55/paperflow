@@ -16,7 +16,12 @@ export type PdfOperationType =
   | "metadata"
   | "protect"
   | "unlock"
-  | "ocr";
+  | "ocr"
+  | "wordToPdf"
+  | "powerPointToPdf"
+  | "excelToPdf"
+  | "htmlToPdf"
+  | "pdfToMarkdown";
 
 export type OverwritePolicy = "rename" | "overwrite";
 
@@ -73,7 +78,7 @@ export interface JobSnapshot {
   finishedAt: number | null;
 }
 
-export type FileKind = "pdf" | "image" | "unsupported";
+export type FileKind = "pdf" | "image" | "word" | "presentation" | "spreadsheet" | "html" | "unsupported";
 
 export interface FileInfo {
   path: string;
