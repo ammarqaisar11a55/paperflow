@@ -11,6 +11,7 @@ use crate::filesystem::paths::{
     create_unique_dir, resolve_output_path, sanitize_file_name, stem, unique_path, validate_image_input,
     validate_output_dir, validate_pdf_input, OverwritePolicy,
 };
+use crate::pdf::ops::office::{self, OfficeKind};
 use crate::pdf::ops::{self, parse_options, Staged};
 use crate::services::context::JobContext;
 
@@ -33,6 +34,11 @@ pub enum OperationType {
     Protect,
     Unlock,
     Ocr,
+    WordToPdf,
+    PowerPointToPdf,
+    ExcelToPdf,
+    HtmlToPdf,
+    PdfToMarkdown,
 }
 
 impl OperationType {
@@ -56,16 +62,24 @@ impl OperationType {
             Protect => "Protect PDF",
             Unlock => "Unlock PDF",
             Ocr => "OCR PDF",
+            WordToPdf => "Word to PDF",
+            PowerPointToPdf => "PowerPoint to PDF",
+            ExcelToPdf => "Excel to PDF",
+            HtmlToPdf => "HTML to PDF",
+            PdfToMarkdown => "PDF to Markdown",
         }
     }
 
     /// Suffix for a default output name, e.g. "Report - compressed". Empty
-    /// for tools that create a folder of files, which name the folder.
+    /// for tools that create a folder of files, which name the folder, and
+    /// for conversions, whose result simply takes the document's name
+    /// ("Report.docx" becomes "Report.pdf").
     pub fn default_suffix(self) -> &'static str {
         use OperationType::*;
         match self {
             Merge => "merged",
             Split | PdfToImages | ExtractImages => "",
+            WordToPdf | PowerPointToPdf | ExcelToPdf | HtmlToPdf | PdfToMarkdown => "",
             Compress => "compressed",
             Organize => "organized",
             Rotate => "rotated",
@@ -81,9 +95,25 @@ impl OperationType {
         }
     }
 
-    pub fn takes_images(self) -> bool {
-        self == OperationType::ImagesToPdf
+    /// The kind of input the operation reads.
+    pub fn input(self) -> InputKind {
+        use OperationType::*;
+        match self {
+            ImagesToPdf => InputKind::Image,
+            WordToPdf => InputKind::Office(OfficeKind::Word),
+            PowerPointToPdf => InputKind::Office(OfficeKind::Presentation),
+            ExcelToPdf => InputKind::Office(OfficeKind::Spreadsheet),
+            HtmlToPdf => InputKind::Office(OfficeKind::Html),
+            _ => InputKind::Pdf,
+        }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InputKind {
+    Pdf,
+    Image,
+    Office(OfficeKind),
 }
 
 /// A request from the interface. Deliberately not `Debug`: options may hold
@@ -131,11 +161,11 @@ pub fn validate(op: &PdfOperation) -> AppResult<Vec<PathBuf>> {
                 "Files must be chosen with the file picker or dropped onto the window.",
             ));
         }
-        if op.op_type.takes_images() {
-            validate_image_input(&p)?;
-        } else {
-            validate_pdf_input(&p)?;
-        }
+        match op.op_type.input() {
+            InputKind::Pdf => validate_pdf_input(&p)?,
+            InputKind::Image => validate_image_input(&p)?,
+            InputKind::Office(kind) => office::validate_input(&p, kind)?,
+        };
         inputs.push(p);
     }
     let dir = Path::new(&op.output_dir);
@@ -181,6 +211,11 @@ pub fn execute(ctx: &JobContext, op: &PdfOperation, inputs: &[PathBuf]) -> AppRe
         Protect => ops::security::protect(ctx, inputs, &name, parse_options(o)?),
         Unlock => ops::security::unlock(ctx, inputs, &name, parse_options(o)?),
         Ocr => ops::ocr::ocr(ctx, inputs, &name, parse_options(o)?),
+        WordToPdf | PowerPointToPdf | ExcelToPdf | HtmlToPdf => {
+            let InputKind::Office(kind) = op.op_type.input() else { unreachable!("office operation") };
+            office::office_to_pdf(ctx, inputs, &name, kind, parse_options(o)?)
+        }
+        PdfToMarkdown => ops::markdown::pdf_to_markdown(ctx, inputs, &name, parse_options(o)?),
     }
 }
 

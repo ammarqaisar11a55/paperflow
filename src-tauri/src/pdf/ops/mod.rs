@@ -11,8 +11,10 @@ use crate::error::{AppError, AppResult};
 
 pub mod compress;
 pub mod convert;
+pub mod markdown;
 pub mod metadata;
 pub mod ocr;
+pub mod office;
 pub mod organize;
 pub mod security;
 pub mod stamp;

@@ -9,6 +9,7 @@ use tauri::{AppHandle, Manager, Runtime};
 use crate::error::{AppError, AppResult};
 use crate::filesystem::paths::{display_name, validate_image_input, validate_pdf_input, IMAGE_EXTENSIONS};
 use crate::pdf::ops::metadata::{self, Metadata};
+use crate::pdf::ops::office::{self, OfficeKind};
 
 /// Largest file the viewer will load into memory.
 const MAX_READ_BYTES: u64 = 1024 * 1024 * 1024;
@@ -19,7 +20,7 @@ pub struct FileInfo {
     pub path: String,
     pub name: String,
     pub size: u64,
-    /// "pdf", "image" or "unsupported".
+    /// "pdf", "image", "word", "presentation", "spreadsheet", "html" or "unsupported".
     pub kind: &'static str,
     pub page_count: Option<u32>,
     pub encrypted: bool,
@@ -44,6 +45,18 @@ pub fn inspect(path: &Path) -> FileInfo {
         encrypted: false,
         error: None,
     };
+    if let Some(kind) = OfficeKind::of(path) {
+        info.kind = match kind {
+            OfficeKind::Word => "word",
+            OfficeKind::Presentation => "presentation",
+            OfficeKind::Spreadsheet => "spreadsheet",
+            OfficeKind::Html => "html",
+        };
+        if let Err(e) = office::validate_input(path, kind) {
+            info.error = Some(e.message);
+        }
+        return info;
+    }
     if is_image_path(path) {
         info.kind = "image";
         if let Err(e) = validate_image_input(path) {

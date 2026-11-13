@@ -152,7 +152,10 @@ fn reports_engines_and_app_info() {
     let engines = invoke(&h, "engine_status", json!({})).unwrap();
     let names: Vec<&str> =
         engines.as_array().unwrap().iter().map(|e| e["binary"].as_str().unwrap()).collect();
-    assert_eq!(names, ["gs", "qpdf", "pdftoppm", "pdftotext", "pdfimages", "tesseract"]);
+    assert_eq!(
+        names,
+        ["gs", "qpdf", "pdftoppm", "pdftotext", "pdfimages", "pdftohtml", "tesseract", "soffice"]
+    );
     let info = invoke(&h, "app_info", json!({})).unwrap();
     assert_eq!(info["license"], "MIT");
     assert_eq!(invoke(&h, "temp_usage", json!({})).unwrap(), 0);
