@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <!-- PaperFlow: a page in blue-black ink with a highlighter stroke. -->
-  <rect x="64" y="64" width="896" height="896" rx="208" fill="#24477A"/>
-  <path d="M326 216 H600 L734 350 V770 a44 44 0 0 1 -44 44 H326 a44 44 0 0 1 -44 -44 V260 a44 44 0 0 1 44 -44 Z" fill="#FCFCFA"/>
-  <path d="M600 216 V306 a44 44 0 0 0 44 44 H734 Z" fill="#C9D6EA"/>
-  <rect x="350" y="392" width="230" height="40" rx="20" fill="#C9D6EA"/>
-  <rect x="330" y="486" width="356" height="112" rx="14" fill="#F2C230" transform="rotate(-3 508 542)"/>
-  <rect x="370" y="525" width="276" height="40" rx="20" fill="#24477A"/>
-  <rect x="350" y="660" width="290" height="40" rx="20" fill="#C9D6EA"/>
+  <!-- PaperFlow: a page with a highlighted line, in the Dayweave orange. -->
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="#E95420"/>
+  <path d="M326 216 H600 L734 350 V770 a44 44 0 0 1 -44 44 H326 a44 44 0 0 1 -44 -44 V260 a44 44 0 0 1 44 -44 Z" fill="#FFFFFF"/>
+  <path d="M600 216 V306 a44 44 0 0 0 44 44 H734 Z" fill="#F9C9B5"/>
+  <rect x="350" y="392" width="230" height="40" rx="20" fill="#F3D2C4"/>
+  <rect x="330" y="486" width="356" height="112" rx="14" fill="#FDE3D8" transform="rotate(-3 508 542)"/>
+  <rect x="370" y="525" width="276" height="40" rx="20" fill="#E95420"/>
+  <rect x="350" y="660" width="290" height="40" rx="20" fill="#F3D2C4"/>
 </svg>
