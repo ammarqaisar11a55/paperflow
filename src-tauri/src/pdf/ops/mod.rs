@@ -53,3 +53,5 @@ pub fn require_one(inputs: &[PathBuf]) -> AppResult<&Path> {
         _ => Err(AppError::invalid("This tool works on one file at a time.")),
     }
 }
+#[cfg(test)]
+mod engine_tests;
