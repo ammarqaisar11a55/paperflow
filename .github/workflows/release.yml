@@ -1,8 +1,9 @@
 name: Release
 
-# A version tag creates a draft GitHub release with the packages and their
-# checksums. Nothing becomes public until the draft is published by hand, and
-# the Snap Store upload is a separate, manual step.
+# A version tag publishes a GitHub release with the .deb, the snap and their
+# checksums, and uploads the snap to the Snap Store's stable channel. The store
+# upload needs the SNAPCRAFT_STORE_CREDENTIALS secret (see docs/BUILDING.md);
+# without it the release is still published and the store step is skipped.
 on:
   push:
     tags: ["v*"]
@@ -68,7 +69,7 @@ jobs:
           name: snap
           path: ${{ steps.snapcraft.outputs.snap }}
 
-  draft:
+  github-release:
     needs: [packages, snap]
     runs-on: ubuntu-24.04
     steps:
@@ -77,10 +78,34 @@ jobs:
           merge-multiple: true
       - name: Checksums
         run: sha256sum *.deb *.snap > SHA256SUMS
-      - name: Create the draft release
+      - name: Publish the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft \
-            --title "PaperFlow ${GITHUB_REF_NAME#v}" --generate-notes \
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --title "PaperFlow ${GITHUB_REF_NAME#v}" --generate-notes --latest \
             *.deb *.snap SHA256SUMS
+
+  snap-store:
+    needs: snap
+    runs-on: ubuntu-24.04
+    env:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+    steps:
+      - name: Check for store credentials
+        id: credentials
+        run: |
+          if [ -n "$SNAPCRAFT_STORE_CREDENTIALS" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::SNAPCRAFT_STORE_CREDENTIALS is not set; upload the snap to the store by hand."
+          fi
+      - uses: actions/download-artifact@v4
+        if: steps.credentials.outputs.present == 'true'
+        with:
+          name: snap
+      - if: steps.credentials.outputs.present == 'true'
+        run: sudo snap install snapcraft --classic
+      - name: Upload to the stable channel
+        if: steps.credentials.outputs.present == 'true'
+        run: snapcraft upload --release=stable ./*.snap

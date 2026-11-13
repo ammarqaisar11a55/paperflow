@@ -115,8 +115,19 @@ checks that every engine and the English language data are present.
    `packaging/io.github.ammarqaisar11a55.paperflow.metainfo.xml`.
 2. Tag the commit `vX.Y.Z` and push the tag.
 3. `.github/workflows/release.yml` checks the versions, runs the tests, builds the `.deb` and the
-   snap, and creates a draft GitHub release with both and a `SHA256SUMS` file.
-4. Review and publish the draft. Upload the snap to the Snap Store separately:
+   snap, publishes a GitHub release with both and a `SHA256SUMS` file, and uploads the snap to
+   the Snap Store's stable channel.
+
+The store upload needs the `SNAPCRAFT_STORE_CREDENTIALS` repository secret. Create it once from
+an account that owns the `paperflow` name (the credentials go straight into GitHub without being
+shown):
+
+```bash
+snapcraft export-login --snaps=paperflow --acls=package_access,package_push,package_update,package_release - | gh secret set SNAPCRAFT_STORE_CREDENTIALS --repo ammarqaisar11a55/paperflow
+```
+
+Without the secret, the release is still published and the store step only leaves a notice; upload
+the snap from the release by hand instead:
 
 ```bash
 snapcraft upload --release=stable paperflow_X.Y.Z_amd64.snap
