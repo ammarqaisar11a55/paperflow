@@ -98,6 +98,13 @@ Then install and try the result:
 sudo snap install --dangerous paperflow_*.snap
 ```
 
+Check that every engine converts documents inside the installed snap (the Snap and Release
+workflows run the same check, and a release is not published if it fails):
+
+```bash
+cp scripts/snap-smoke-test.sh ~/ && snap run --shell paperflow -c "bash $HOME/snap-smoke-test.sh"
+```
+
 CI builds the snap on every change to its inputs (`.github/workflows/snap.yml`), installs it and
 checks that every engine and the English language data are present.
 
@@ -152,4 +159,5 @@ snapcraft upload --release=stable paperflow_X.Y.Z_amd64.snap
 | Files on another drive cannot be opened in the snap | Connect the removable-media interface: `sudo snap connect paperflow:removable-media`. |
 | A protected PDF is refused by every tool | Unlock it first with Unlock PDF and its password. |
 | Office or HTML conversion says LibreOffice "is not available" | Install the packages listed under Requirements, or use the snap. |
+| Word, PowerPoint, Excel or HTML to PDF fails in snap 0.2.0 with "Fatal exception: Signal 6" | LibreOffice could not find its configuration in that build. Fixed in 0.2.1; update with `sudo snap refresh paperflow`. |
 | A converted Word document's lines break differently | A font it uses isn't installed. Install the font, or `fonts-crosextra-carlito` and `fonts-crosextra-caladea` for Calibri and Cambria. |
