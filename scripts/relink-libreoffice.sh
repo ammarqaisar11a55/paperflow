@@ -25,6 +25,15 @@ if grep -q '^BRAND_BASE_DIR=file:///usr/lib/libreoffice$' "$rc"; then
   mv "$rc.new" "$rc"
   echo "made BRAND_BASE_DIR relative in fundamentalrc"
 fi
+# Ubuntu 24.04 also reads the configuration from /etc/libreoffice/registry,
+# which its install scripts fill with links to share/.registry. Bundles never
+# run those scripts, so LibreOffice finds no configuration at all and aborts
+# while starting up. Read it from the installation, as upstream does.
+if grep -q 'file:///etc/libreoffice/registry' "$rc"; then
+  sed 's|file:///etc/libreoffice/registry|${BRAND_BASE_DIR}/share/registry|g' "$rc" > "$rc.new"
+  mv "$rc.new" "$rc"
+  echo "made CONFIGURATION_LAYERS relative in fundamentalrc"
+fi
 find "$lo" -type l -lname '/*' -print0 | while IFS= read -r -d '' link; do
   target="$(readlink "$link")"
   inside="$root$target"
@@ -43,3 +52,28 @@ find "$lo" -type l -lname '/*' -print0 | while IFS= read -r -d '' link; do
     echo "left ${link#"$root"} -> ${target} (not bundled)"
   fi
 done
+
+# share/registry must hold the configuration. On Ubuntu 24.04 it is a link to
+# /etc/libreoffice/registry (see above), which a bundle lacks or leaves
+# empty; the files themselves are in share/.registry.
+registry="$lo/share/registry"
+if [ ! -e "$registry/main.xcd" ] && [ -e "$lo/share/.registry/main.xcd" ]; then
+  if [ -L "$registry" ]; then
+    rm "$registry"
+  elif [ -d "$registry" ]; then
+    rmdir "$registry"
+  fi
+  ln -s .registry "$registry"
+  echo "linked share/registry -> .registry"
+fi
+
+# Fail the build rather than ship a LibreOffice that cannot start.
+if [ ! -e "$registry/main.xcd" ]; then
+  echo "error: ${registry#"$root"}/main.xcd is missing; LibreOffice would not start" >&2
+  exit 1
+fi
+if grep -v '^URE_MORE_JAVA_CLASSPATH_URLS=' "$rc" | grep -q 'file:///'; then
+  echo "error: fundamentalrc still refers to absolute paths:" >&2
+  grep -v '^URE_MORE_JAVA_CLASSPATH_URLS=' "$rc" | grep 'file:///' >&2
+  exit 1
+fi
