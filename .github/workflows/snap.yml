@@ -9,6 +9,7 @@ on:
       - "snap/**"
       - "packaging/**"
       - "scripts/relink-libreoffice.sh"
+      - "scripts/snap-smoke-test.sh"
       - "package.json"
       - "package-lock.json"
       - "src-tauri/Cargo.lock"
@@ -36,8 +37,14 @@ jobs:
           done
           test -x /snap/paperflow/current/usr/lib/libreoffice/program/soffice
           grep -q 'BRAND_BASE_DIR=${ORIGIN}/..' /snap/paperflow/current/usr/lib/libreoffice/program/fundamentalrc
+          if grep -q 'file:///etc/libreoffice' /snap/paperflow/current/usr/lib/libreoffice/program/fundamentalrc; then
+            echo "::error::LibreOffice still reads its configuration from /etc"; exit 1
+          fi
+          test -e /snap/paperflow/current/usr/lib/libreoffice/share/registry/main.xcd
           ls /snap/paperflow/current/usr/share/tesseract-ocr/5/tessdata/eng.traineddata
           snap connections paperflow
+      - name: Convert documents with the installed snap
+        run: snap run --shell paperflow -c "bash $GITHUB_WORKSPACE/scripts/snap-smoke-test.sh"
       - name: Keep the snap for a week
         uses: actions/upload-artifact@v4
         with:
