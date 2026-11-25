@@ -58,6 +58,11 @@
   </keywords>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="0.2.1" date="2026-11-25">
+      <description>
+        <p>Word, PowerPoint, Excel and HTML to PDF work again in the snap. In 0.2.0 LibreOffice could not start there and every conversion failed.</p>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-11-14">
       <description>
         <p>New conversions, all running on your computer:</p>
